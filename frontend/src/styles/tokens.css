@@ -1,0 +1,21 @@
+:root {
+  --color-brand: #7132f5; --color-brand-dark: #5741d8; --color-brand-deep: #5b1ecf;
+  --color-brand-subtle: rgba(133,91,251,0.16); --color-text: #101114;
+  --color-neutral: #686b82; --color-muted: #9497a9; --color-surface: #ffffff;
+  --color-border: #dedee5; --color-border-soft: rgba(104,107,130,0.24);
+  --color-neutral-subtle: rgba(104,107,130,0.12); --color-neutral-badge-text: #484b5e;
+  --color-secondary-surface: rgba(148,151,169,0.08);
+  --color-success: #149e61; --color-success-subtle: rgba(20,158,97,0.16); --color-success-text: #026b3f;
+  --font-display: "Kraken-Brand", "IBM Plex Sans", Helvetica, Arial, sans-serif;
+  --font-body: "Kraken-Product", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --shadow-subtle: 0px 4px 24px rgba(0,0,0,0.03); --shadow-micro: 0px 1px 4px rgba(16,24,40,0.04);
+  --radius: 12px;
+  --background: var(--color-surface); --foreground: var(--color-text);
+  --card: var(--color-surface); --card-foreground: var(--color-text);
+  --popover: var(--color-surface); --popover-foreground: var(--color-text);
+  --primary: var(--color-brand); --primary-foreground: #ffffff;
+  --secondary: var(--color-secondary-surface); --secondary-foreground: var(--color-text);
+  --muted: var(--color-secondary-surface); --muted-foreground: var(--color-neutral);
+  --accent: var(--color-brand-subtle); --accent-foreground: var(--color-brand);
+  --destructive: var(--color-text); --border: var(--color-border); --input: var(--color-border-soft); --ring: var(--color-brand);
+}
