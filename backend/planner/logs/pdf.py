@@ -32,13 +32,17 @@ def draw_log_pdf(logs: tuple[DailyLog, ...], metadata: LogMetadata) -> bytes:
                    ("Truck / trailer", f"{metadata.truck_number or 'Not provided'} / {metadata.trailer_number or 'Not provided'}"),
                    ("Shipment", metadata.shipment_reference), ("Carrier address", metadata.carrier_address),
                    ("Starting odometer", str(metadata.starting_odometer_miles) if metadata.starting_odometer_miles is not None else None)]
+        header_continuations = []
         for index, (label, value) in enumerate(headers):
             x = 36 if index % 2 == 0 else 408
             y = 527 - (index // 2) * 28
             canvas.setFont("Helvetica-Bold", 9)
             canvas.drawString(x, y, label)
             canvas.setFont("Helvetica", 9)
-            for line_index, line in enumerate(wrap(value or "Not provided", 62)[:2]):
+            header_lines = wrap(value or "Not provided", 62)
+            if len(header_lines) > 2:
+                header_continuations.extend(wrap(f"{label} (full value): {value}", 151))
+            for line_index, line in enumerate(header_lines[:2]):
                 canvas.drawString(x, y - 11 - line_index * 9, line)
         left, top, width, row_height = 118, 411, 554, 29
         canvas.setFont("Helvetica-Bold", 9)
@@ -74,7 +78,7 @@ def draw_log_pdf(logs: tuple[DailyLog, ...], metadata: LogMetadata) -> bytes:
         canvas.drawString(36, 275, f"Planned miles: {log.distance_m / 1609.344:,.2f}")
         canvas.drawString(36, 253, "REMARKS / LOCATIONS")
         canvas.setFont("Helvetica", 8)
-        lines = []
+        lines = header_continuations
         for remark in log.remarks:
             stamp = remark.at.astimezone(ZoneInfo(log.timezone)).strftime("%H:%M %Z")
             lines.extend(wrap(f"{stamp} | {remark.location_label} | {remark.note}", 151))

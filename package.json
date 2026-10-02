@@ -8,6 +8,8 @@
   "scripts": {
     "dev": "concurrently --kill-others -n api,web \"npm:dev:api\" \"npm:dev:web\"",
     "dev:api": "tsx scripts/backend.ts dev",
+    "dev:demo": "concurrently --kill-others -n api,web \"npm:dev:api:demo\" \"npm:dev:web\"",
+    "dev:api:demo": "tsx scripts/backend.ts demo",
     "dev:web": "npm run dev -w @haul-hours/web",
     "test:api": "tsx scripts/backend.ts test",
     "test:web": "npm run test -w @haul-hours/web -- --run",
@@ -18,7 +20,7 @@
     "lint": "tsx scripts/backend.ts lint && npm run typecheck",
     "contracts:generate": "tsx scripts/generate-contracts.ts",
     "contracts:check": "tsx scripts/generate-contracts.ts --check",
-    "test:e2e": "npm run test:e2e -w @haul-hours/web"
+    "test:e2e": "npm run test:e2e -w @haul-hours/web --"
   },
   "devDependencies": {
     "@types/node": "^26.6.4",

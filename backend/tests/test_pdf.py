@@ -38,6 +38,14 @@ def test_signed_bundle_round_trip_tampering_and_expiry(trip_request):
     assert caught.value.status == 410
 
 
+def test_pdf_preserves_long_header_values(trip_request):
+    logs = build_daily_logs(trip_at(trip_request, datetime(2026, 10, 2, 12, tzinfo=timezone.utc), 7200))
+    address = "123 Highway Business Park, " * 8 + "Building 42 Suite 900"
+    reader = PdfReader(BytesIO(draw_log_pdf(logs, LogMetadata(carrier_address=address))))
+    text = " ".join(page.extract_text() for page in reader.pages)
+    assert "Building 42 Suite 900" in text
+
+
 def test_signature_is_checked_before_decompression_and_decoded_size_is_bounded(trip_request, monkeypatch):
     import base64
     import zlib

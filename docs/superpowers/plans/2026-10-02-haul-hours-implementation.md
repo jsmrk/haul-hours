@@ -96,23 +96,23 @@ Add package initializers and focused test fixtures as needed. Keep each module's
 - `PlanningProblem(code: str, message: str, retryable: bool, field_errors: dict, safe_prefix: tuple[DutyEvent, ...])`.
 - Produce `GET /api/v1/health` with `{"status":"ok","planner_version":"1"}`. No provider or database access.
 
-- [ ] **Step 1: Write failing contract and health tests.**
+- [x] **Step 1: Write failing contract and health tests.**
 
   `test_health_is_stateless` asserts status 200 and exact response above. `test_contract_round_trip` asserts offset-aware times remain the same UTC instants, enum values remain stable, and cycle `"69.50"` survives serialization as a decimal string. `test_required_assessment_fields` asserts the four required fields are present in the request contract.
 
-- [ ] **Step 2: Run the tests and confirm missing-contract/endpoint failures.**
+- [x] **Step 2: Run the tests and confirm missing-contract/endpoint failures.**
 
   Run: `cd backend && python -m pytest tests/test_contracts.py -q`. Expected: failing tests for missing application contracts/health response; fix tooling issues before treating a failure as meaningful.
 
-- [ ] **Step 3: Implement the contracts and foundation.**
+- [x] **Step 3: Implement the contracts and foundation.**
 
   Define the constants in Global Constraints, UTC-aware immutable domain records, `LogMetadata`, explicit errors, and health routing. Configure Django without sessions, admin, auth, or persistent trip models. Configure private npm workspaces with frontend named @haul-hours/web, one root package-lock, root dev/test/typecheck/build commands, and TypeScript scripts for Python and contract tooling. Enable strict, allowJs:false, noUncheckedIndexedAccess, and exactOptionalPropertyTypes in application and tooling configs. Initialize shadcn/ui Radix components with Tailwind v4, CSS variables, and @ aliases; map semantic tokens to the supplied design values. Keep Python dependencies in the backend virtual environment. Scaffold React with a health-state view and import `global.css`/`tokens.css`. Define the exact color, typography, spacing, radius, shadow, and breakpoint tokens from the design system specification; use the supplied font fallbacks. Lock dependencies and record development commands.
 
-- [ ] **Step 4: Verify both applications run.**
+- [x] **Step 4: Verify both applications run.**
 
   Run the contract tests, `python manage.py check`, and `cd frontend && npm run build`. Expected: passing contracts, no Django configuration issues, and a successful frontend build.
 
-- [ ] **Step 5: Commit the task deliverable.** Stage only Task 1 files; commit as `chore: establish planner contracts and application foundation`.
+- [x] **Step 5: Commit the task deliverable.** Stage only Task 1 files; commit as `chore: establish planner contracts and application foundation`.
 
 ## Task 2: Implement normalized map and stop providers
 
@@ -131,19 +131,19 @@ Add package initializers and focused test fixtures as needed. Keep each module's
 - `StopProvider.find_candidates(search: StopSearch, budget: ProviderBudget) -> tuple[StopPlace, ...]`.
 - `point_at_elapsed(leg: RoadLeg, elapsed_s: int) -> Coordinate`; `distance_at_elapsed(leg: RoadLeg, elapsed_s: int) -> int`. Both conserve normalized step totals.
 
-- [ ] **Step 1: Write failing provider-contract tests.**
+- [x] **Step 1: Write failing provider-contract tests.**
 
   Fixtures assert longitude/latitude order; GeoJSON/step totals; missing/null matrix entries; skipped route requests for co-located points; US/border/ferry options; truck profile selection; invalid JSON; timeouts; 429/Retry-After; and bounded cache hits. Assert a fuel place with `hgv=no` is excluded, and a fuel-only POI without parking evidence is not marked as a long-rest site. Assert no API key appears in public errors.
 
-- [ ] **Step 2: Run `python -m pytest tests/test_providers.py -q`.** Expected: meaningful failures for provider contracts not implemented.
+- [x] **Step 2: Run `python -m pytest tests/test_providers.py -q`.** Expected: meaningful failures for provider contracts not implemented.
 
-- [ ] **Step 3: Implement the adapter methods above.**
+- [x] **Step 3: Implement the adapter methods above.**
 
   Use backend-only credentials and HTTPX deadlines, normalize data, resolve location timezone, and map provider failures to `PlanningProblem`. Include user-agent/attribution metadata. Overpass queries use bounded circles/corridor anchors and tag evidence; deduplicate by provider ID and keep at most 100 candidates. Implement the spec's cache lifetimes and bounded retry rules. Provide a fixture-backed `RoadNetworkFake` implementing both provider protocols for later scheduler tests.
 
-- [ ] **Step 4: Run provider tests and Django checks.** Expected: all tests pass without live network calls. With a configured key, perform one explicitly marked integration check of geocoding, a short truck route, and a bounded POI search; record provider capabilities, not guessed quota values.
+- [x] **Step 4: Run provider tests and Django checks.** Expected: all tests pass without live network calls. With a configured key, perform one explicitly marked integration check of geocoding, a short truck route, and a bounded POI search; record provider capabilities, not guessed quota values.
 
-- [ ] **Step 5: Commit as `feat: add routing and real stop provider adapters`**.
+- [x] **Step 5: Commit as `feat: add routing and real stop provider adapters`**.
 
 ## Task 3: Implement and audit duty-clock transitions
 
@@ -157,21 +157,21 @@ Add package initializers and focused test fixtures as needed. Keep each module's
 - `apply_event(state: DutyState, event: DutyEvent) -> DutyState`; reject impermissible driving with an explicit domain error.
 - `audit_timeline(request: TripRequest, events: tuple[DutyEvent, ...]) -> tuple[str, ...]`, independently checking event continuity and legal driving windows rather than calling the scheduler.
 
-- [ ] **Step 1: Write failing duty tests with exact boundaries.**
+- [x] **Step 1: Write failing duty tests with exact boundaries.**
 
   Assert driving is allowed up to 28,800 seconds before a break; 1,799 non-driving seconds do not reset that counter, while 1,800 do. Assert adjacent 900-second ON and 900-second OFF intervals together qualify as a driving interruption but do not daily-reset. Assert pickup/fuel ON qualify without clearing cycle usage. Assert 39,600 driving seconds and a 50,400-second window each prohibit another driving second. Assert 35,999 OFF seconds do not daily-reset; 36,000 do. Assert 122,400 OFF clears cycle usage and subsumes daily reset. Assert midnight does not reset anything.
 
   For a rested request with cycle `"69.50"`, assert a 3,600-second pickup produces 253,800 used seconds and no subsequent driving allowance. For final unloading, assert finishing beyond the driving window is valid and does not append rest. Independent audit must reject a deliberately injected one-second driving violation and an overlapping event.
 
-- [ ] **Step 2: Run `python -m pytest tests/test_duty.py -q`.** Expected: missing transition/allowance failures.
+- [x] **Step 2: Run `python -m pytest tests/test_duty.py -q`.** Expected: missing transition/allowance failures.
 
-- [ ] **Step 3: Implement the state operations above using UTC elapsed seconds.**
+- [x] **Step 3: Implement the state operations above using UTC elapsed seconds.**
 
   Initialize full daily allowances without clearing cycle usage. Combine adjacent qualifying non-driving time even when its OFF/ON status changes; only uninterrupted OFF contributes to daily/cycle resets. Start the window on the first ON/D event. Record cycle work fully, even above 70, and clamp further driving availability until reset. Keep fuel distance across all rests and reset it only after fuel.
 
-- [ ] **Step 4: Run duty and contract tests.** Expected: all specified boundaries pass; the audit detects injected defects.
+- [x] **Step 4: Run duty and contract tests.** Expected: all specified boundaries pass; the audit detects injected defects.
 
-- [ ] **Step 5: Commit as `feat: enforce duty clocks and timeline invariants`**.
+- [x] **Step 5: Commit as `feat: enforce duty clocks and timeline invariants`**.
 
 ## Task 4: Build a scheduler that reaches actual stops
 
@@ -185,7 +185,7 @@ Add package initializers and focused test fixtures as needed. Keep each module's
 - `TripSummary(pickup_arrival_at: datetime, dropoff_arrival_at: datetime, completed_at: datetime, distance_m: int, driving_s: int, elapsed_s: int, on_duty_s: int, off_duty_s: int, fuel_stop_count: int, short_break_count: int, daily_rest_count: int, cycle_restart_count: int)`.
 - `summarize_trip(trip: ScheduledTrip) -> TripSummary`.
 
-- [ ] **Step 1: Write failing complete-trip fixtures.**
+- [x] **Step 1: Write failing complete-trip fixtures.**
 
   A two-hour-driving trip without needed stops has exactly 7,200 D seconds plus 7,200 ON service seconds and completes four hours after departure. Co-located current/pickup/drop-off produces two distinct service events totaling 7,200 ON seconds, zero D miles, and no unnecessary rest.
 
@@ -193,15 +193,15 @@ Add package initializers and focused test fixtures as needed. Keep each module's
 
   Use an asymmetric fake road network where the closest POI is unreachable or its exit is too long. Assert the scheduler chooses the feasible alternative, or returns `NO_FEASIBLE_STOP_FOUND` with no complete summary. A missing POI result must not become a fabricated named stop. Exercise bounded backtracking, exhausted budget, early stopping, and exact driving-boundary arrivals.
 
-- [ ] **Step 2: Run `python -m pytest tests/test_scheduler.py -q`.** Expected: missing scheduler failures for the fixtures.
+- [x] **Step 2: Run `python -m pytest tests/test_scheduler.py -q`.** Expected: missing scheduler failures for the fixtures.
 
-- [ ] **Step 3: Implement `schedule_trip` following the spec's decision loop.**
+- [x] **Step 3: Implement `schedule_trip` following the spec's decision loop.**
 
   Preserve mandatory waypoint order, use step timing for prospective boundaries, prune through matrix estimates, and verify road edges before emitting events. Check the next reachable stopping opportunity and fuel-only exit reserve. Respect candidate/search/backtracking limits. Assemble output geometry from the accepted edges, not a later reroute. Use deterministic tie-breaking and finish after unloading. Call the independent audit before returning success.
 
-- [ ] **Step 4: Run provider, duty, and scheduler suites.** Expected: every successful fixture has an empty audit result, no fuel span above 1,609,344 meters, exact event/summary agreement, and real fixture POI references on scheduled stops.
+- [x] **Step 4: Run provider, duty, and scheduler suites.** Expected: every successful fixture has an empty audit result, no fuel span above 1,609,344 meters, exact event/summary agreement, and real fixture POI references on scheduled stops.
 
-- [ ] **Step 5: Commit as `feat: schedule trips with verified fuel and rest stops`**.
+- [x] **Step 5: Commit as `feat: schedule trips with verified fuel and rest stops`**.
 
 ## Task 5: Generate daily log models and matching PDFs
 
@@ -219,21 +219,21 @@ Add package initializers and focused test fixtures as needed. Keep each module's
 - `draw_log_pdf(logs: tuple[DailyLog, ...], metadata: LogMetadata) -> bytes`.
 - `sign_log_bundle(logs: tuple[DailyLog, ...]) -> str`; `verify_log_bundle(token: str, now: datetime) -> tuple[DailyLog, ...]`.
 
-- [ ] **Step 1: Write failing daily/PDF tests.**
+- [x] **Step 1: Write failing daily/PDF tests.**
 
   Assert normal-day totals equal 86,400 seconds, graph row order is OFF/SB/D/ON, SB is zero when unused, and an event spanning midnight keeps its ID and conserved miles on both dates. Intermediate restart dates must render; midnight completion must not create an empty date. Outside-trip padding must carry its assumption flag and leave trip completion unchanged.
 
   For `America/New_York`, assert 2026-03-08 has 82,800 seconds and 2026-11-01 has 90,000 seconds, with labeled skipped/repeated hours. A ten-hour UTC rest crossing DST must still be exactly 36,000 seconds. Assert PDF page count equals selected sheet count, status totals/header text match the log model, missing metadata says "Not provided", and signature is blank. Assert token tampering fails and a token beyond 24 hours expires.
 
-- [ ] **Step 2: Run `python -m pytest tests/test_logs.py tests/test_pdf.py -q`.** Expected: missing log/export failures.
+- [x] **Step 2: Run `python -m pytest tests/test_logs.py tests/test_pdf.py -q`.** Expected: missing log/export failures.
 
-- [ ] **Step 3: Implement the interfaces above.**
+- [x] **Step 3: Implement the interfaces above.**
 
   Clip at timezone-aware local boundaries and derive ticks from UTC chronology. Allocate split distance from road-step profiles and residuals. Generate graph paths once, consume them in ReportLab, and preserve the projection/outside-trip labels. Use Django timestamp signing with a stable backend secret and a planner-versioned compressed payload; validate size before signing, decompression, and drawing.
 
-- [ ] **Step 4: Run log/PDF suites and visually inspect normal, multi-day, and DST PDFs.** Expected: numerical assertions pass and every sheet has readable ticks, transitions, remarks, and metadata. Store expected fixtures; avoid brittle assertions against raw PDF binary bytes.
+- [x] **Step 4: Run log/PDF suites and visually inspect normal, multi-day, and DST PDFs.** Expected: numerical assertions pass and every sheet has readable ticks, transitions, remarks, and metadata. Store expected fixtures; avoid brittle assertions against raw PDF binary bytes.
 
-- [ ] **Step 5: Commit as `feat: generate projected daily sheets and signed PDF exports`**.
+- [x] **Step 5: Commit as `feat: generate projected daily sheets and signed PDF exports`**.
 
 ## Task 6: Expose the planning and export API
 
@@ -247,19 +247,19 @@ Add package initializers and focused test fixtures as needed. Keep each module's
 - `POST /api/v1/logs/pdf` accepts `{export_token, metadata, date?: string}` and returns `application/pdf` with a safe content-disposition filename.
 - Produce `python manage.py export_schema --output ../contracts/trip.schema.json` from the API serializers, not a hand-maintained second contract.
 
-- [ ] **Step 1: Write failing endpoint tests.**
+- [x] **Step 1: Write failing endpoint tests.**
 
   Assert cycle `"0"`/`"70"` accepted; negative, over-70, nonnumeric/nonfinite, or over-two-decimal input rejected with field errors. Assert coordinates, US region, timezone, departure offset and metadata are validated. Test all spec error/status mappings, including 409 safe prefix, 422 route cap, 429, 503, 504, 410 token expiry, and 413 oversize payload. Assert exported PDF uses the returned timeline token without calling routing providers. Verify changing header metadata cannot alter a duty interval.
 
-- [ ] **Step 2: Run `python -m pytest tests/test_api.py -q`.** Expected: missing planning/export handlers or response-contract failures.
+- [x] **Step 2: Run `python -m pytest tests/test_api.py -q`.** Expected: missing planning/export handlers or response-contract failures.
 
-- [ ] **Step 3: Implement the endpoints and error envelopes.**
+- [x] **Step 3: Implement the endpoints and error envelopes.**
 
   Create request budgets at the API boundary, call adapters → scheduler → logs → signing, and serialize one consistent result. Validate provider-leg limits before expensive stop searches. Set CORS to the configured frontend origin, keep secrets out of responses, and include request IDs in server logs. The API returns a bounded complete result atomically; there is no persisted job ID. Generate the JSON Schema and add a deterministic schema-drift check to CI.
 
-- [ ] **Step 4: Run the entire backend suite, schema generation, and Django checks.** Expected: all tests pass offline, generated schema is stable, and response fields match the spec.
+- [x] **Step 4: Run the entire backend suite, schema generation, and Django checks.** Expected: all tests pass offline, generated schema is stable, and response fields match the spec.
 
-- [ ] **Step 5: Commit as `feat: expose trip planning and daily log export endpoints`**.
+- [x] **Step 5: Commit as `feat: expose trip planning and daily log export endpoints`**.
 
 ## Task 7: Build trip input, timezone handling, and request state
 
@@ -276,21 +276,21 @@ Add package initializers and focused test fixtures as needed. Keep each module's
 - Use locally generated shadcn/ui Button, Badge, Field, Card, Input, Popover/Command, Tabs, Alert, Collapsible, and loading primitives. Customize Button default/outline/secondary to the supplied palette and add subtle/white variants; all have 12px corners. Add success/neutral Badge variants with 6px/8px corners; Card has 16px corners. Preserve Radix keyboard/focus behavior. Do not create parallel hand-built UI primitives.
 - API responses start as unknown and are validated against the generated JSON Schema before narrowing to generated TypeScript types. No application-owned JavaScript/JSX, any, or ts-ignore.
 
-- [ ] **Step 1: Write failing interaction tests.**
+- [x] **Step 1: Write failing interaction tests.**
 
   Assert autocomplete is debounced 300 ms, keyboard-selectable, and ignored below three characters. Editing a selected address clears its coordinates. Default departure represents the same current instant when origin timezone changes; an explicit user-edited time is interpreted in the selected log timezone. Assert DST rejection/choice behavior. Cycle validation must match the backend.
 
   Simulate slow old search/planning responses after a new query/submission; assert they cannot overwrite current state. Assert double submit is disabled, cancellation is safe, blocked problems show safe-prefix information, and form restoration cannot restore a stale selected address under a different label.
 
-- [ ] **Step 2: Run `npm run test -- trip.test.tsx departure.test.ts`.** Expected: missing UI/state/helper failures.
+- [x] **Step 2: Run `npm run test -- trip.test.tsx departure.test.ts`.** Expected: missing UI/state/helper failures.
 
-- [ ] **Step 3: Implement the input flow and typed API client.**
+- [x] **Step 3: Implement the input flow and typed API client.**
 
   Preserve four required assessment fields; group optional departure and log headers separately. Use Temporal plus round-trip wall-time validation, accessible labels/errors, AbortController, request sequence guards, a 190-second timeout, and session-storage form state. Apply customized shadcn/ui controls, purple primary actions, white panels, readable neutral hints, 12px buttons, and the specified form/responsive layouts. Keep computation in Django. Show useful loading and provider error messages without fabricated progress percentages.
 
-- [ ] **Step 4: Run frontend tests, TypeScript checking, and build.** Expected: matching validation, stale-response protection, and successful compilation.
+- [x] **Step 4: Run frontend tests, TypeScript checking, and build.** Expected: matching validation, stale-response protection, and successful compilation.
 
-- [ ] **Step 5: Commit as `feat: add trip form and timezone-safe planning requests`**.
+- [x] **Step 5: Commit as `feat: add trip form and timezone-safe planning requests`**.
 
 ## Task 8: Present route, itinerary, daily sheets, and exports
 
@@ -303,19 +303,19 @@ Add package initializers and focused test fixtures as needed. Keep each module's
 - `downloadLogs(result: PlanResult, metadata: LogMetadata, date?: string): Promise<void>`; export the snapshot whose controls the user selected, even if a new result arrives during download.
 - Map, itinerary, and graph selections refer to backend event IDs; use `driving_leg_id` to select road edges.
 
-- [ ] **Step 1: Write failing result tests.**
+- [x] **Step 1: Write failing result tests.**
 
   Assert pickup-before-dropoff order, arrival vs completion labels, counts and totals from backend data, map/itinerary event synchronization, and preserved road detours. Test sheet navigation, normal/DST ticks, OFF/SB/D/ON labels, visible assumption remarks, one-day/all-day export selection, and print page breaks. Assert an expired token asks for recalculation and an older in-flight PDF cannot be mislabeled as the new trip's export. Assert blocked results have no complete ETA or full-trip download action.
 
-- [ ] **Step 2: Run `npm run test -- trip.test.tsx logs.test.tsx`.** Expected: missing result rendering/export behavior failures.
+- [x] **Step 2: Run `npm run test -- trip.test.tsx logs.test.tsx`.** Expected: missing result rendering/export behavior failures.
 
-- [ ] **Step 3: Implement the components above.**
+- [x] **Step 3: Implement the components above.**
 
   Leaflet displays accepted geometry with a purple route, distinct origin/pickup/drop-off/fuel/break/rest/restart icons, explicit legends, and visible attribution. Show stop evidence/availability limitations where they help users interpret a location. Render turn instructions from accepted legs and daily paths from backend graph data. Apply the specified white/purple workspace, summary typography, subtle selected-event panels, semantic controls, readable empty/error states, keyboard selection, PDF blobs, and print CSS. Keep duty traces and printed records dark and readable in grayscale.
 
-- [ ] **Step 4: Run tests/build and inspect a representative complete result in a browser.** Expected: map, itinerary, summary, sheet, and PDF agree; mobile controls and print layout remain usable.
+- [x] **Step 4: Run tests/build and inspect a representative complete result in a browser.** Expected: map, itinerary, summary, sheet, and PDF agree; mobile controls and print layout remain usable.
 
-- [ ] **Step 5: Commit as `feat: display synchronized route and daily log outputs`**.
+- [x] **Step 5: Commit as `feat: display synchronized route and daily log outputs`**.
 
 ## Task 9: Verify the whole application and prepare assessment delivery
 
@@ -323,11 +323,11 @@ Add package initializers and focused test fixtures as needed. Keep each module's
 
 **Interfaces:** Produce repeatable CI commands, deployable frontend/API configurations, environment documentation, an assessment acceptance matrix, and a timed Loom script. This task uses all earlier contracts without changing scheduling rules.
 
-- [ ] **Step 1: Write failing end-to-end acceptance cases.**
+- [x] **Step 1: Write failing end-to-end acceptance cases.**
 
   Submit a short trip, a multi-day route, a route requiring fuel, and a cycle-exhaustion route against deterministic provider fixtures. Assert one-hour pickup/drop-off, map/itinerary/log agreement, multi-sheet navigation, exported PDF, blocked-stop handling, and a provider outage. Download/parse one PDF to confirm its dates and totals match the visible result. Include a selected location changing during planning and preserve the correct result snapshot.
 
-- [ ] **Step 2: Run `npm run test:e2e`.** Expected: any missing full-flow integration fails with a concrete assertion rather than setup errors.
+- [x] **Step 2: Run `npm run test:e2e`.** Expected: any missing full-flow integration fails with a concrete assertion rather than setup errors.
 
 - [ ] **Step 3: Complete deployment/CI/documentation configuration.**
 
@@ -335,11 +335,11 @@ Add package initializers and focused test fixtures as needed. Keep each module's
 
   README includes setup, commands, assumptions, real-stop search limitations, supported routing bounds, source links/attribution, and delivery links when available. `walkthrough.md` allocates about four minutes across input, route/stops, sheets/export, Django scheduling, React presentation, and tests. `acceptance.md` maps every assessment requirement to a demo/check.
 
-- [ ] **Step 4: Run the complete local verification once.**
+- [x] **Step 4: Run the complete local verification once.**
 
   Backend: `python -m pytest -q` and `python manage.py check`. Frontend: `npm run test -- --run`, `npm run typecheck`, `npm run build`, `npm run test:e2e`. Generate contract files and require no diff. Expected: all checks pass.
 
-- [ ] **Step 5: Verify the supplied design system in the complete flows.**
+- [x] **Step 5: Verify the supplied design system in the complete flows.**
 
   Verify the tokens/components established in Tasks 1 and 7–8 against the design specification. Inspect complete, loading, validation-error, and blocked flows at 375/425/640/768/1024/1280/1536px and an additional narrower mobile viewport. Check open suggestions, long location names, visible keyboard focus, 12px button radii, heading/body hierarchy, readable secondary text, map attribution, and internal sheet scrolling. Verify print/PDF grayscale legibility and layout. Use fallback fonts until licensed Kraken files are supplied; font availability does not block delivery. Preserve all event contracts and scheduling checks.
 

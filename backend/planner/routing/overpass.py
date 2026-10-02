@@ -4,15 +4,16 @@ from planner.contracts import Location
 from planner.errors import PlanningProblem
 from planner.routing.cache import TTLCache
 from planner.routing.contracts import ProviderBudget, StopPlace, StopSearch
-from planner.routing.http import request_json
+from planner.routing.http import RequestPacer, request_json
 from planner.routing.ors import timezone_at
 
 
 class OverpassProvider:
-    def __init__(self, url: str = "https://overpass-api.de/api/interpreter", client: httpx.Client | None = None):
+    def __init__(self, url: str = "https://overpass-api.de/api/interpreter", client: httpx.Client | None = None, min_interval_s: float = 0):
         self.url = url
         self.client = client or httpx.Client()
         self.cache = TTLCache(128)
+        self.pacer = RequestPacer(min_interval_s)
 
     def find_candidates(self, search: StopSearch, budget: ProviderBudget) -> tuple[StopPlace, ...]:
         cached = self.cache.get(search)
@@ -26,7 +27,7 @@ class OverpassProvider:
                          '[amenity=parking][hgv]', '[amenity=parking]["parking:hgv"]'):
                 fragments.append(f"nwr{tags}{circle};")
         query = "[out:json][timeout:12];(" + "".join(fragments) + ");out center tags 100;"
-        data = request_json(self.client, "POST", self.url, budget, 15, data={"data": query},
+        data = request_json(self.client, "POST", self.url, budget, 15, pacer=self.pacer, data={"data": query},
                             headers={"User-Agent": "HaulHours/1.0"})
         try:
             found = {}

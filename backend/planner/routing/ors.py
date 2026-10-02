@@ -9,7 +9,7 @@ from planner.contracts import Location
 from planner.errors import PlanningProblem
 from planner.routing.cache import TTLCache
 from planner.routing.contracts import ProviderBudget, RoadLeg, RoadStep
-from planner.routing.http import request_json
+from planner.routing.http import RequestPacer, request_json
 
 
 @lru_cache(maxsize=1)
@@ -35,17 +35,18 @@ def normalize_parts(values: list[float], total: int) -> list[int]:
 
 class ORSProvider:
     def __init__(self, api_key: str, base_url: str = "https://api.openrouteservice.org",
-                 client: httpx.Client | None = None):
+                 client: httpx.Client | None = None, min_interval_s: float = 0):
         self.api_key = api_key
         self.base_url = base_url.rstrip("/")
         self.client = client or httpx.Client()
         self.cache = TTLCache()
+        self.pacer = RequestPacer(min_interval_s)
 
     def _request(self, method: str, path: str, budget: ProviderBudget, **kwargs):
         if not self.api_key:
             raise PlanningProblem("PROVIDER_NOT_CONFIGURED", "Live routing needs an openrouteservice API key on the server.", 503)
         return request_json(self.client, method, self.base_url + path, budget,
-                            headers={"Authorization": self.api_key, "User-Agent": "HaulHours/1.0"}, **kwargs)
+                            pacer=self.pacer, headers={"Authorization": self.api_key, "User-Agent": "HaulHours/1.0"}, **kwargs)
 
     def search_locations(self, query: str, limit: int, budget: ProviderBudget) -> tuple[Location, ...]:
         key = ("geocode", query.lower().strip(), limit)

@@ -44,7 +44,7 @@
 .print-only { display: none; }
 .duty-trace[role="button"] { cursor: pointer; }
 @media(min-width: 1280px) { .route-workspace { grid-template-columns: minmax(0, 1fr) 260px; } .itinerary-list { max-height: 630px; overflow-y: auto; padding-right: 6px; } .route-map { height: 570px; } }
-@page { size: landscape; margin: 12mm; }
+@page { size: letter landscape; margin: 12mm; }
 @media print {
   header,footer,.trip-form,.workspace-hero,.no-print,.empty-workspace,.screen-result { display: none !important; }
   body { background: white; color: #101114; }
@@ -57,7 +57,15 @@
   .log-graph-scroll { overflow: visible; border-radius: 0; }
   .log-graph { min-width: 0; width: 100%; }
   .duty-trace { stroke: #101114 !important; }
-  .log-sheet p,.log-sheet dd,.log-sheet dt { font-size: 12px; }
-  .log-sheet h3 { font-size: 20px; }
+  .log-sheet p,.log-sheet dd,.log-sheet dt { font-size: 9px; line-height: 1.25; }
+  .log-sheet h3 { font-size: 14px; }
+  .log-sheet > div:first-child { margin-bottom: 8px; }
+  .log-metadata { margin-bottom: 8px; gap: 4px; }
+  .log-metadata dd { margin-top: 2px; }
+  .log-graph { max-height: 200px; }
+  .log-sheet > p { margin-block: 6px; }
+  .log-sheet h4 { font-size: 10px; margin-block: 6px; }
+  .log-sheet .space-y-3 > div { padding-bottom: 3px; margin-block: 0 !important; gap: 0; }
+  .log-sheet > div:last-child { margin-top: 8px; }
   .log-sheet div { break-inside: avoid; }
 }

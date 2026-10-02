@@ -48,6 +48,11 @@ export async function searchLocations(query: string, signal: AbortSignal): Promi
   return parseLocations(value);
 }
 
+export async function usesFixtureData(signal: AbortSignal): Promise<boolean> {
+  const response = await request("health", {}, signal, 5000);
+  return response.headers.get("X-Haul-Hours-Provider-Mode") === "fixtures";
+}
+
 export async function planTrip(payload: TripRequest, signal: AbortSignal): Promise<PlanResult> {
   const response = await request("trips/plan", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }, signal, 190000);
   const value: unknown = await response.json();

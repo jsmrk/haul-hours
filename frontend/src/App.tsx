@@ -6,13 +6,22 @@ import { Spinner } from "@/components/ui/spinner";
 import { TripForm } from "@/features/trip/TripForm";
 import { useTripPlanner } from "@/features/trip/useTripPlanner";
 import { TripResults } from "@/features/trip/TripResults";
+import { usesFixtureData } from "@/features/trip/api";
+import { useEffect, useState } from "react";
 
 export default function App() {
   const planner = useTripPlanner();
+  const [fixtureMode, setFixtureMode] = useState(false);
+  useEffect(() => {
+    const controller = new AbortController();
+    void usesFixtureData(controller.signal).then(setFixtureMode).catch(() => {});
+    return () => controller.abort();
+  }, []);
   const [selection, setSelection] = useState<{ token: string; event: string } | null>(null);
   return <>
     <header className="border-b"><div className="page-shell flex min-h-20 items-center justify-between gap-4"><a href="/" className="flex items-center gap-3 text-[22px] font-semibold tracking-tight"><span className="flex size-10 items-center justify-center rounded-[12px] bg-primary text-white"><Truck className="size-6"/></span>haul<span className="-ml-2 text-primary">hours</span></a><div className="flex items-center gap-2 text-sm text-muted-foreground"><ShieldCheck className="size-4 text-primary"/><span className="hidden phone:inline">Built around your duty limits</span><Badge variant="neutral" className="hidden sm:inline-flex">70 hrs / 8 days</Badge></div></div></header>
     <main className="page-shell py-10 sm:py-12">
+      {fixtureMode && <Alert role="note" className="mb-6 no-print"><AlertCircle/><AlertTitle>Test data</AlertTitle><AlertDescription>Routes, stops, and timing are illustrative. Use live mode for actual road directions.</AlertDescription></Alert>}
       <div className="workspace-hero mb-8 flex flex-wrap items-end justify-between gap-5"><div><p className="mb-3 flex items-center gap-2 text-sm font-medium text-primary"><Route className="size-4"/>YOUR NEXT HAUL, PLANNED</p><h1>Plan the road ahead.</h1><p className="mt-4 max-w-2xl text-muted-foreground">A clear route. The right breaks. Daily logs ready to go.</p></div><div className="flex items-center gap-2 text-sm text-muted-foreground"><span className="size-2 rounded-full bg-[var(--color-success)]"/>Property-carrying · Single driver</div></div>
       <div className="planner-layout grid items-start gap-6">
         <TripForm planner={planner}/>
@@ -20,7 +29,7 @@ export default function App() {
           {planner.phase === "loading" && <Alert role="status" className="no-print border-primary/25 bg-accent/30"><Spinner className="text-primary"/><AlertTitle>Finding your way forward</AlertTitle><AlertDescription>Checking truck routes, real stopping places, and duty limits. Longer trips may take a few minutes.</AlertDescription></Alert>}
           {planner.problem && <Alert role="alert" className="no-print"><AlertCircle/><AlertTitle>{planner.phase === "blocked" ? "This trip needs a different stopping plan" : "We couldn’t complete this plan"}</AlertTitle><AlertDescription>{planner.problem.message}{planner.problem.safe_prefix.length > 0 && <div className="mt-3"><p>{planner.problem.safe_prefix.length} safe activities were computed. No complete arrival time or trip export is available.</p><ol className="mt-2 list-decimal space-y-1 pl-5">{planner.problem.safe_prefix.map((event) => <li key={event.id}>{event.kind.replaceAll("_", " ")} · {event.end_location.label}</li>)}</ol></div>}</AlertDescription></Alert>}
           {planner.result && planner.phase !== "blocked" ? <>
-            {planner.previousResult && <Alert className="no-print"><InfoPrevious/><AlertTitle>Previous trip</AlertTitle><AlertDescription>These results belong to your last submitted trip. Plan again to apply your changes.</AlertDescription></Alert>}
+            {planner.previousResult && <Alert role="note" className="no-print"><InfoPrevious/><AlertTitle>Previous trip</AlertTitle><AlertDescription>These results belong to your last submitted trip. Plan again to apply your changes.</AlertDescription></Alert>}
             <TripResults key={planner.result.export_token} result={planner.result} selectedEventId={selection?.token === planner.result.export_token ? selection.event : null} onSelectEvent={(event) => { if (planner.result) setSelection({ token: planner.result.export_token, event }); }}/>
           </> : <EmptyWorkspace/>}
         </div>
@@ -43,4 +52,3 @@ function EmptyWorkspace() {
     <div className="mt-6 flex items-center justify-center gap-2 text-sm text-muted-foreground">Fill in your trip details<MoveRight className="size-4"/>See your plan</div>
   </CardContent></Card>;
 }
-import { useState } from "react";

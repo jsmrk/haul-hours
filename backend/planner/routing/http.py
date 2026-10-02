@@ -1,4 +1,5 @@
 import time
+from threading import Lock
 
 import httpx
 
@@ -6,9 +7,33 @@ from planner.errors import PlanningProblem
 from planner.routing.contracts import ProviderBudget
 
 
+class RequestPacer:
+    """Space uncached requests within one process; not a distributed quota gate."""
+    def __init__(self, interval_s: float):
+        self.interval_s = interval_s
+        self.next_at = 0.0
+        self.lock = Lock()
+
+    def wait(self, budget: ProviderBudget):
+        if not self.lock.acquire(timeout=budget.check()):
+            raise PlanningProblem("PLANNING_TIMEOUT", "Provider pacing reached the planning time limit. Please try again.", 504, True)
+        try:
+            delay = max(0, self.next_at - time.monotonic())
+            if delay >= budget.check():
+                raise PlanningProblem("PLANNING_TIMEOUT", "Provider pacing reached the planning time limit. Please try again.", 504, True)
+            if delay:
+                time.sleep(delay)
+            budget.check()
+            self.next_at = time.monotonic() + self.interval_s
+        finally:
+            self.lock.release()
+
+
 def request_json(client: httpx.Client, method: str, url: str, budget: ProviderBudget,
-                 timeout: float = 10, **kwargs) -> dict:
+                 timeout: float = 10, pacer: RequestPacer | None = None, **kwargs) -> dict:
     for attempt in range(2):
+        if pacer:
+            pacer.wait(budget)
         request_timeout = budget.consume(timeout)
         try:
             response = client.request(method, url, timeout=request_timeout, **kwargs)

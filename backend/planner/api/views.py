@@ -20,6 +20,7 @@ from planner.logs.days import build_daily_logs
 from planner.logs.pdf import draw_log_pdf
 from planner.logs.tokens import sign_log_bundle, verify_log_bundle
 from planner.routing.contracts import ProviderBudget
+from planner.routing.fixtures import FIXTURE_WARNING, FixtureNetwork
 from planner.routing.ors import ORSProvider
 from planner.routing.overpass import OverpassProvider
 from planner.scheduling.scheduler import schedule_trip
@@ -29,12 +30,20 @@ logger = logging.getLogger("haul_hours.api")
 
 
 @lru_cache(maxsize=4)
-def provider_instances(key, base_url, overpass_url):
-    return ORSProvider(key, base_url), OverpassProvider(overpass_url)
+def provider_instances(key, base_url, overpass_url, ors_interval, overpass_interval):
+    return ORSProvider(key, base_url, min_interval_s=ors_interval), OverpassProvider(overpass_url, min_interval_s=overpass_interval)
 
 
 def get_providers():
-    return provider_instances(settings.ORS_API_KEY, settings.ORS_BASE_URL, settings.OVERPASS_URL)
+    if settings.PROVIDER_MODE == "fixtures":
+        if not settings.DEBUG:
+            raise PlanningProblem("PROVIDER_CONFIGURATION_ERROR", "Test fixtures require local debug mode.", 503)
+        network = FixtureNetwork()
+        return network, network
+    if settings.PROVIDER_MODE != "live":
+        raise PlanningProblem("PROVIDER_CONFIGURATION_ERROR", "Configure a supported routing provider mode.", 503)
+    return provider_instances(settings.ORS_API_KEY, settings.ORS_BASE_URL, settings.OVERPASS_URL,
+                              settings.ORS_MIN_INTERVAL_S, settings.OVERPASS_MIN_INTERVAL_S)
 
 
 def flatten_errors(detail, prefix=""):
@@ -72,7 +81,9 @@ def endpoint(view):
 
 @api_view(["GET"])
 def health(request):
-    return Response({"status": "ok", "planner_version": PLANNER_VERSION})
+    response = Response({"status": "ok", "planner_version": PLANNER_VERSION})
+    response["X-Haul-Hours-Provider-Mode"] = settings.PROVIDER_MODE
+    return response
 
 
 @api_view(["GET"])
@@ -109,6 +120,8 @@ def plan(request):
     ], "summary": to_wire(summarize_trip(trip)), "road_legs": to_wire(trip.road_legs),
         "events": to_wire(trip.events), "daily_logs": to_wire(logs), "warnings": list(trip.warnings),
         "planner_version": PLANNER_VERSION, "export_token": sign_log_bundle(logs)}
+    if settings.PROVIDER_MODE == "fixtures":
+        payload["warnings"].insert(0, FIXTURE_WARNING)
     if len(json.dumps(payload, separators=(",", ":")).encode()) > MAX_BODY_BYTES:
         raise PlanningProblem("RESULT_TOO_LARGE", "The route and logs exceed the 4 MB response size limit.", 413)
     return Response(payload)
