@@ -32,6 +32,11 @@ def test_valid_plan_response_has_one_timeline_and_export_token(trip_request, use
     assert data["summary"]["on_duty_s"] == 7200
     assert data["events"][-1]["kind"] == "dropoff"
     assert data["export_token"] and data["daily_logs"]
+    from jsonschema import validate
+
+    from planner.management.commands.export_schema import export_contract_schema
+    schema = export_contract_schema()
+    validate(data, {"$schema": schema["$schema"], "$ref": "#/definitions/PlanResult", "definitions": schema["definitions"]})
 
 
 @pytest.mark.parametrize("used", ["-1", "70.01", "1.234", "NaN", "Infinity", "oops", 20])

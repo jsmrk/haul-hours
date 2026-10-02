@@ -1,0 +1,798 @@
+{
+  "$id": "https://haul-hours.local/contracts/v1",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "anyOf": [
+    {
+      "$ref": "#/definitions/TripRequest"
+    },
+    {
+      "$ref": "#/definitions/PlanResult"
+    },
+    {
+      "$ref": "#/definitions/LocationSearchResult"
+    },
+    {
+      "$ref": "#/definitions/PlanningProblem"
+    },
+    {
+      "$ref": "#/definitions/PDFExportRequest"
+    }
+  ],
+  "definitions": {
+    "DailyLog": {
+      "additionalProperties": false,
+      "properties": {
+        "date": {
+          "format": "date",
+          "type": "string"
+        },
+        "distance_m": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "duration_s": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "end_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "graph": {
+          "$ref": "#/definitions/LogGraph"
+        },
+        "intervals": {
+          "items": {
+            "$ref": "#/definitions/LogInterval"
+          },
+          "type": "array"
+        },
+        "remarks": {
+          "items": {
+            "$ref": "#/definitions/LogRemark"
+          },
+          "type": "array"
+        },
+        "start_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "timezone": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "totals_s": {
+          "additionalProperties": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "type": "object"
+        }
+      },
+      "required": [
+        "date",
+        "timezone",
+        "start_at",
+        "end_at",
+        "duration_s",
+        "intervals",
+        "totals_s",
+        "distance_m",
+        "remarks",
+        "graph"
+      ],
+      "type": "object"
+    },
+    "DutyEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "distance_m": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "driving_leg_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "end_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "end_location": {
+          "$ref": "#/definitions/Location"
+        },
+        "id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "drive",
+            "pickup",
+            "dropoff",
+            "fuel",
+            "break",
+            "daily_rest",
+            "cycle_restart"
+          ],
+          "type": "string"
+        },
+        "poi_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "reasons": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "start_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "start_location": {
+          "$ref": "#/definitions/Location"
+        },
+        "status": {
+          "enum": [
+            "OFF",
+            "SB",
+            "D",
+            "ON"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "status",
+        "start_at",
+        "end_at",
+        "start_location",
+        "end_location",
+        "distance_m",
+        "driving_leg_id",
+        "reasons",
+        "poi_id"
+      ],
+      "type": "object"
+    },
+    "GraphPath": {
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "points": {
+          "items": {
+            "items": [
+              {
+                "maximum": 1,
+                "minimum": 0,
+                "type": "number"
+              },
+              {
+                "maximum": 3,
+                "minimum": 0,
+                "type": "integer"
+              }
+            ],
+            "maxItems": 2,
+            "minItems": 2,
+            "type": "array"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "event_id",
+        "points"
+      ],
+      "type": "object"
+    },
+    "GraphTick": {
+      "additionalProperties": false,
+      "properties": {
+        "elapsed_s": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "label": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "utc_offset_s": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "elapsed_s",
+        "label",
+        "utc_offset_s"
+      ],
+      "type": "object"
+    },
+    "Location": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 240,
+          "minLength": 1,
+          "type": "string"
+        },
+        "label": {
+          "maxLength": 500,
+          "minLength": 1,
+          "type": "string"
+        },
+        "latitude": {
+          "maximum": 90,
+          "minimum": -90,
+          "type": "number"
+        },
+        "longitude": {
+          "maximum": 180,
+          "minimum": -180,
+          "type": "number"
+        },
+        "timezone": {
+          "maxLength": 100,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "longitude",
+        "latitude",
+        "timezone"
+      ],
+      "type": "object"
+    },
+    "LocationSearchResult": {
+      "additionalProperties": false,
+      "properties": {
+        "locations": {
+          "items": {
+            "$ref": "#/definitions/Location"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "locations"
+      ],
+      "type": "object"
+    },
+    "LogGraph": {
+      "additionalProperties": false,
+      "properties": {
+        "paths": {
+          "items": {
+            "$ref": "#/definitions/GraphPath"
+          },
+          "type": "array"
+        },
+        "ticks": {
+          "items": {
+            "$ref": "#/definitions/GraphTick"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "ticks",
+        "paths"
+      ],
+      "type": "object"
+    },
+    "LogInterval": {
+      "additionalProperties": false,
+      "properties": {
+        "assumed_outside_trip": {
+          "type": "boolean"
+        },
+        "distance_m": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "end_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "event_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "start_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "OFF",
+            "SB",
+            "D",
+            "ON"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "event_id",
+        "status",
+        "start_at",
+        "end_at",
+        "distance_m",
+        "assumed_outside_trip"
+      ],
+      "type": "object"
+    },
+    "LogMetadata": {
+      "additionalProperties": false,
+      "properties": {
+        "carrier_address": {
+          "anyOf": [
+            {
+              "maxLength": 240,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "carrier_name": {
+          "anyOf": [
+            {
+              "maxLength": 120,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "driver_name": {
+          "anyOf": [
+            {
+              "maxLength": 100,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "shipment_reference": {
+          "anyOf": [
+            {
+              "maxLength": 100,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "starting_odometer_miles": {
+          "anyOf": [
+            {
+              "pattern": "^\\d+(?:\\.\\d{1,2})?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "trailer_number": {
+          "anyOf": [
+            {
+              "maxLength": 80,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "truck_number": {
+          "anyOf": [
+            {
+              "maxLength": 80,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [],
+      "type": "object"
+    },
+    "LogRemark": {
+      "additionalProperties": false,
+      "properties": {
+        "at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "event_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "location_label": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "note": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "at",
+        "location_label",
+        "note",
+        "event_id"
+      ],
+      "type": "object"
+    },
+    "PDFExportRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "date": {
+          "format": "date",
+          "type": "string"
+        },
+        "export_token": {
+          "maxLength": 4000000,
+          "minLength": 1,
+          "type": "string"
+        },
+        "metadata": {
+          "$ref": "#/definitions/LogMetadata"
+        }
+      },
+      "required": [
+        "export_token"
+      ],
+      "type": "object"
+    },
+    "PlanResult": {
+      "additionalProperties": false,
+      "properties": {
+        "assumptions": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "daily_logs": {
+          "items": {
+            "$ref": "#/definitions/DailyLog"
+          },
+          "type": "array"
+        },
+        "events": {
+          "items": {
+            "$ref": "#/definitions/DutyEvent"
+          },
+          "type": "array"
+        },
+        "export_token": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "planner_version": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "request": {
+          "$ref": "#/definitions/TripRequest"
+        },
+        "road_legs": {
+          "items": {
+            "$ref": "#/definitions/RoadLeg"
+          },
+          "type": "array"
+        },
+        "summary": {
+          "$ref": "#/definitions/TripSummary"
+        },
+        "warnings": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "request",
+        "assumptions",
+        "summary",
+        "road_legs",
+        "events",
+        "daily_logs",
+        "warnings",
+        "planner_version",
+        "export_token"
+      ],
+      "type": "object"
+    },
+    "PlanningProblem": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "field_errors": {
+          "additionalProperties": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "type": "object"
+        },
+        "message": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "retryable": {
+          "type": "boolean"
+        },
+        "safe_prefix": {
+          "items": {
+            "$ref": "#/definitions/DutyEvent"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "retryable",
+        "field_errors",
+        "safe_prefix"
+      ],
+      "type": "object"
+    },
+    "RoadLeg": {
+      "additionalProperties": false,
+      "properties": {
+        "destination": {
+          "$ref": "#/definitions/Location"
+        },
+        "distance_m": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "duration_s": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "origin": {
+          "$ref": "#/definitions/Location"
+        },
+        "steps": {
+          "items": {
+            "$ref": "#/definitions/RoadStep"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "origin",
+        "destination",
+        "steps",
+        "distance_m",
+        "duration_s"
+      ],
+      "type": "object"
+    },
+    "RoadStep": {
+      "additionalProperties": false,
+      "properties": {
+        "distance_m": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "duration_s": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "geometry": {
+          "items": {
+            "items": [
+              {
+                "maximum": 180,
+                "minimum": -180,
+                "type": "number"
+              },
+              {
+                "maximum": 90,
+                "minimum": -90,
+                "type": "number"
+              }
+            ],
+            "maxItems": 2,
+            "minItems": 2,
+            "type": "array"
+          },
+          "type": "array"
+        },
+        "instruction": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "instruction",
+        "distance_m",
+        "duration_s",
+        "geometry"
+      ],
+      "type": "object"
+    },
+    "TripRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "current_location": {
+          "$ref": "#/definitions/Location"
+        },
+        "cycle_used_hours": {
+          "pattern": "^\\d+(?:\\.\\d{1,2})?$",
+          "type": "string"
+        },
+        "departure_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "dropoff_location": {
+          "$ref": "#/definitions/Location"
+        },
+        "log_timezone": {
+          "maxLength": 100,
+          "minLength": 1,
+          "type": "string"
+        },
+        "metadata": {
+          "$ref": "#/definitions/LogMetadata"
+        },
+        "pickup_location": {
+          "$ref": "#/definitions/Location"
+        }
+      },
+      "required": [
+        "current_location",
+        "pickup_location",
+        "dropoff_location",
+        "cycle_used_hours",
+        "departure_at",
+        "log_timezone"
+      ],
+      "type": "object"
+    },
+    "TripSummary": {
+      "additionalProperties": false,
+      "properties": {
+        "completed_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "cycle_restart_count": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "daily_rest_count": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "distance_m": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "driving_s": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "dropoff_arrival_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "elapsed_s": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "fuel_stop_count": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "off_duty_s": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "on_duty_s": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "pickup_arrival_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "short_break_count": {
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "pickup_arrival_at",
+        "dropoff_arrival_at",
+        "completed_at",
+        "distance_m",
+        "driving_s",
+        "elapsed_s",
+        "on_duty_s",
+        "off_duty_s",
+        "fuel_stop_count",
+        "short_break_count",
+        "daily_rest_count",
+        "cycle_restart_count"
+      ],
+      "type": "object"
+    }
+  },
+  "title": "HaulHoursContracts"
+}

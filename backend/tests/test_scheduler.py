@@ -44,10 +44,11 @@ def test_colocated_services_do_not_append_unnecessary_rest(trip_request):
 
 
 @pytest.mark.parametrize("used", ["70", "69.50"])
-def test_initial_restart_accounts_for_loading_before_more_driving(trip_request, used):
+@pytest.mark.parametrize("approach_seconds", [600, 3600])
+def test_initial_restart_accounts_for_loading_before_more_driving(trip_request, used, approach_seconds):
     request = replace(trip_request, cycle_used_hours=Decimal(used))
     a, b, c = request.current_location, request.pickup_location, request.dropoff_location
-    network = RoadNetworkFake((road(a, b, 600, 10000), road(b, c, 600, 10000)))
+    network = RoadNetworkFake((road(a, b, approach_seconds, 10000), road(b, c, 600, 10000)))
     trip = schedule_trip(request, network, network, budget())
     restarts = [event for event in trip.events if event.kind == EventKind.CYCLE_RESTART]
     assert len(restarts) == 1 and restarts[0].duration_s == 122400
@@ -101,11 +102,11 @@ def test_exact_fuel_range_arrival_does_not_require_post_trip_fuel(trip_request):
 
 
 def test_fuel_only_dead_end_backtracks_to_stop_with_parking(trip_request):
-    request = replace(trip_request, pickup_location=trip_request.current_location, cycle_used_hours=Decimal("67"))
-    a, c = request.current_location, request.dropoff_location
+    request = replace(trip_request, cycle_used_hours=Decimal("67"))
+    a, c = request.pickup_location, request.dropoff_location
     bad = place("fuel-only", -78.7, fuel=True)
     good = place("truck-plaza", -79.1, fuel=True, rest=True)
-    network = RoadNetworkFake((road(a, c, 18000, 1900000),
+    network = RoadNetworkFake((road(request.current_location, a, 60, 1000), road(a, c, 18000, 1900000),
                               road(a, bad.location, 7000, 1500000), road(bad.location, c, 7000, 450000),
                               road(a, good.location, 6000, 1200000), road(good.location, c, 12000, 700000)), (bad, good))
     trip = schedule_trip(request, network, network, budget())

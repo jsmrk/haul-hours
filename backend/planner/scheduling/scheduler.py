@@ -136,7 +136,7 @@ def schedule_trip(request: TripRequest, routing: RoutingProvider, stops: StopPro
                 answer = visit(fueled, current, stage, fuel_events, legs, current_place, stop_count + 1)
                 if answer is not None:
                     return answer
-            if (allowance == 0 or arrival_dead_end) and (current_rest or can_wait):
+            if (allowance == 0 or arrival_dead_end or (needs_cycle and can_wait)) and (current_rest or can_wait):
                 kind = EventKind.CYCLE_RESTART if needs_cycle and state.cycle_used_s > 0 else (
                     EventKind.DAILY_REST if needs_daily and state.window_started_at is not None else EventKind.BREAK)
                 if not (kind == EventKind.BREAK and state.break_drive_s == 0):
