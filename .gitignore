@@ -1,0 +1,19 @@
+# graft's local graph cache — regenerable, not committed (run `graft build`).
+/graft/
+
+# Local build, credentials, and isolated implementation workspaces
+.worktrees/
+.superpowers/
+node_modules/
+dist/
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+*.pyc
+.env
+.env.*
+!.env.example
+playwright-report/
+test-results/
+.vercel/
