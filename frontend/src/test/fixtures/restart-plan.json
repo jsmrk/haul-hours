@@ -1,0 +1,811 @@
+{
+  "request": {
+    "current_location": {
+      "id": "origin",
+      "label": "origin",
+      "longitude": -80.0,
+      "latitude": 40.0,
+      "timezone": "America/New_York"
+    },
+    "pickup_location": {
+      "id": "pickup",
+      "label": "pickup",
+      "longitude": -79.0,
+      "latitude": 40.0,
+      "timezone": "America/New_York"
+    },
+    "dropoff_location": {
+      "id": "dropoff",
+      "label": "dropoff",
+      "longitude": -78.0,
+      "latitude": 40.0,
+      "timezone": "America/New_York"
+    },
+    "cycle_used_hours": "70.00",
+    "departure_at": "2026-10-02T12:00:00+00:00",
+    "log_timezone": "America/New_York",
+    "metadata": {
+      "driver_name": null,
+      "carrier_name": null,
+      "carrier_address": null,
+      "truck_number": null,
+      "trailer_number": null,
+      "shipment_reference": null,
+      "starting_odometer_miles": null
+    }
+  },
+  "assumptions": [
+    "Single property-carrying driver; 70 hours / 8 days; starts fully rested.",
+    "One hour each for loading and unloading; 30 minutes on duty for fuel.",
+    "Departure site permits waiting for an initial restart; fuel counter starts at zero.",
+    "No adverse-condition, short-haul, split-sleeper, or appointment-window adjustments.",
+    "Daily sheets use the selected home-terminal timezone; outside-trip time is assumed off duty."
+  ],
+  "summary": {
+    "pickup_arrival_at": "2026-10-03T23:00:00+00:00",
+    "dropoff_arrival_at": "2026-10-04T01:00:00+00:00",
+    "completed_at": "2026-10-04T02:00:00+00:00",
+    "distance_m": 200000,
+    "driving_s": 7200,
+    "elapsed_s": 136800,
+    "on_duty_s": 7200,
+    "off_duty_s": 122400,
+    "fuel_stop_count": 0,
+    "short_break_count": 0,
+    "daily_rest_count": 0,
+    "cycle_restart_count": 1
+  },
+  "road_legs": [
+    {
+      "id": "origin-pickup",
+      "origin": {
+        "id": "origin",
+        "label": "origin",
+        "longitude": -80,
+        "latitude": 40,
+        "timezone": "America/New_York"
+      },
+      "destination": {
+        "id": "pickup",
+        "label": "pickup",
+        "longitude": -79,
+        "latitude": 40,
+        "timezone": "America/New_York"
+      },
+      "steps": [
+        {
+          "instruction": "Follow the test road",
+          "distance_m": 100000,
+          "duration_s": 3600,
+          "geometry": [
+            [
+              -80,
+              40
+            ],
+            [
+              -79,
+              40
+            ]
+          ]
+        }
+      ],
+      "distance_m": 100000,
+      "duration_s": 3600
+    },
+    {
+      "id": "pickup-dropoff",
+      "origin": {
+        "id": "pickup",
+        "label": "pickup",
+        "longitude": -79,
+        "latitude": 40,
+        "timezone": "America/New_York"
+      },
+      "destination": {
+        "id": "dropoff",
+        "label": "dropoff",
+        "longitude": -78,
+        "latitude": 40,
+        "timezone": "America/New_York"
+      },
+      "steps": [
+        {
+          "instruction": "Follow the test road",
+          "distance_m": 100000,
+          "duration_s": 3600,
+          "geometry": [
+            [
+              -79,
+              40
+            ],
+            [
+              -78,
+              40
+            ]
+          ]
+        }
+      ],
+      "distance_m": 100000,
+      "duration_s": 3600
+    }
+  ],
+  "events": [
+    {
+      "id": "event-0001",
+      "kind": "cycle_restart",
+      "status": "OFF",
+      "start_at": "2026-10-02T12:00:00+00:00",
+      "end_at": "2026-10-03T22:00:00+00:00",
+      "start_location": {
+        "id": "origin",
+        "label": "origin",
+        "longitude": -80.0,
+        "latitude": 40.0,
+        "timezone": "America/New_York"
+      },
+      "end_location": {
+        "id": "origin",
+        "label": "origin",
+        "longitude": -80.0,
+        "latitude": 40.0,
+        "timezone": "America/New_York"
+      },
+      "distance_m": 0,
+      "driving_leg_id": null,
+      "reasons": [
+        "34-hour cycle restart; aggregate cycle availability"
+      ],
+      "poi_id": null
+    },
+    {
+      "id": "event-0002",
+      "kind": "drive",
+      "status": "D",
+      "start_at": "2026-10-03T22:00:00+00:00",
+      "end_at": "2026-10-03T23:00:00+00:00",
+      "start_location": {
+        "id": "origin",
+        "label": "origin",
+        "longitude": -80,
+        "latitude": 40,
+        "timezone": "America/New_York"
+      },
+      "end_location": {
+        "id": "pickup",
+        "label": "pickup",
+        "longitude": -79,
+        "latitude": 40,
+        "timezone": "America/New_York"
+      },
+      "distance_m": 100000,
+      "driving_leg_id": "origin-pickup",
+      "reasons": [
+        "Truck road route"
+      ],
+      "poi_id": null
+    },
+    {
+      "id": "event-0003",
+      "kind": "pickup",
+      "status": "ON",
+      "start_at": "2026-10-03T23:00:00+00:00",
+      "end_at": "2026-10-04T00:00:00+00:00",
+      "start_location": {
+        "id": "pickup",
+        "label": "pickup",
+        "longitude": -79.0,
+        "latitude": 40.0,
+        "timezone": "America/New_York"
+      },
+      "end_location": {
+        "id": "pickup",
+        "label": "pickup",
+        "longitude": -79.0,
+        "latitude": 40.0,
+        "timezone": "America/New_York"
+      },
+      "distance_m": 0,
+      "driving_leg_id": null,
+      "reasons": [
+        "One hour loading"
+      ],
+      "poi_id": null
+    },
+    {
+      "id": "event-0004",
+      "kind": "drive",
+      "status": "D",
+      "start_at": "2026-10-04T00:00:00+00:00",
+      "end_at": "2026-10-04T01:00:00+00:00",
+      "start_location": {
+        "id": "pickup",
+        "label": "pickup",
+        "longitude": -79,
+        "latitude": 40,
+        "timezone": "America/New_York"
+      },
+      "end_location": {
+        "id": "dropoff",
+        "label": "dropoff",
+        "longitude": -78,
+        "latitude": 40,
+        "timezone": "America/New_York"
+      },
+      "distance_m": 100000,
+      "driving_leg_id": "pickup-dropoff",
+      "reasons": [
+        "Truck road route"
+      ],
+      "poi_id": null
+    },
+    {
+      "id": "event-0005",
+      "kind": "dropoff",
+      "status": "ON",
+      "start_at": "2026-10-04T01:00:00+00:00",
+      "end_at": "2026-10-04T02:00:00+00:00",
+      "start_location": {
+        "id": "dropoff",
+        "label": "dropoff",
+        "longitude": -78.0,
+        "latitude": 40.0,
+        "timezone": "America/New_York"
+      },
+      "end_location": {
+        "id": "dropoff",
+        "label": "dropoff",
+        "longitude": -78.0,
+        "latitude": 40.0,
+        "timezone": "America/New_York"
+      },
+      "distance_m": 0,
+      "driving_leg_id": null,
+      "reasons": [
+        "One hour unloading"
+      ],
+      "poi_id": null
+    }
+  ],
+  "daily_logs": [
+    {
+      "date": "2026-10-02",
+      "timezone": "America/New_York",
+      "start_at": "2026-10-02T04:00:00+00:00",
+      "end_at": "2026-10-03T04:00:00+00:00",
+      "duration_s": 86400,
+      "intervals": [
+        {
+          "event_id": null,
+          "status": "OFF",
+          "start_at": "2026-10-02T04:00:00+00:00",
+          "end_at": "2026-10-02T12:00:00+00:00",
+          "distance_m": 0,
+          "assumed_outside_trip": true
+        },
+        {
+          "event_id": "event-0001",
+          "status": "OFF",
+          "start_at": "2026-10-02T12:00:00+00:00",
+          "end_at": "2026-10-03T04:00:00+00:00",
+          "distance_m": 0,
+          "assumed_outside_trip": false
+        }
+      ],
+      "totals_s": {
+        "OFF": 86400,
+        "SB": 0,
+        "D": 0,
+        "ON": 0
+      },
+      "distance_m": 0,
+      "remarks": [
+        {
+          "at": "2026-10-02T04:00:00+00:00",
+          "location_label": "origin",
+          "note": "Assumed off duty outside planned trip",
+          "event_id": null
+        },
+        {
+          "at": "2026-10-02T12:00:00+00:00",
+          "location_label": "origin",
+          "note": "Cycle Restart: 34-hour cycle restart; aggregate cycle availability",
+          "event_id": "event-0001"
+        }
+      ],
+      "graph": {
+        "ticks": [
+          {
+            "elapsed_s": 0,
+            "label": "00:00",
+            "utc_offset_s": -14400
+          },
+          {
+            "elapsed_s": 3600,
+            "label": "01:00",
+            "utc_offset_s": -14400
+          },
+          {
+            "elapsed_s": 7200,
+            "label": "02:00",
+            "utc_offset_s": -14400
+          },
+          {
+            "elapsed_s": 10800,
+            "label": "03:00",
+            "utc_offset_s": -14400
+          },
+          {
+            "elapsed_s": 14400,
+            "label": "04:00",
+            "utc_offset_s": -14400
+          },
+          {
+            "elapsed_s": 18000,
+            "label": "05:00",
+            "utc_offset_s": -14400
+          },
+          {
+            "elapsed_s": 21600,
+            "label": "06:00",
+            "utc_offset_s": -14400
+          },
+          {
+            "elapsed_s": 25200,
+            "label": "07:00",
+            "utc_offset_s": -14400
+          },
+          {
+            "elapsed_s": 28800,
+            "label": "08:00",
+            "utc_offset_s": -14400
+          },
+          {
+            "elapsed_s": 32400,
+            "label": "09:00",
+            "utc_offset_s": -14400
+          },
+          {
+            "elapsed_s": 36000,
+            "label": "10:00",
+            "utc_offset_s": -14400
+          },
+          {
+            "elapsed_s": 39600,
+            "label": "11:00",
+            "utc_offset_s": -14400
+          },
+          {
+            "elapsed_s": 43200,
+            "label": "12:00",
+            "utc_offset_s": -14400
+          },
+          {
+            "elapsed_s": 46800,
+            "label": "13:00",
+            "utc_offset_s": -14400
+          },
+          {
+            "elapsed_s": 50400,
+            "label": "14:00",
+            "utc_offset_s": -14400
+          },
+          {
+            "elapsed_s": 54000,
+            "label": "15:00",
+            "utc_offset_s": -14400
+          },
+          {
+            "elapsed_s": 57600,
+            "label": "16:00",
+            "utc_offset_s": -14400
+          },
+          {
+            "elapsed_s": 61200,
+            "label": "17:00",
+            "utc_offset_s": -14400
+          },
+          {
+            "elapsed_s": 64800,
+            "label": "18:00",
+            "utc_offset_s": -14400
+          },
+          {
+            "elapsed_s": 68400,
+            "label": "19:00",
+            "utc_offset_s": -14400
+          },
+          {
+            "elapsed_s": 72000,
+            "label": "20:00",
+            "utc_offset_s": -14400
+          },
+          {
+            "elapsed_s": 75600,
+            "label": "21:00",
+            "utc_offset_s": -14400
+          },
+          {
+            "elapsed_s": 79200,
+            "label": "22:00",
+            "utc_offset_s": -14400
+          },
+          {
+            "elapsed_s": 82800,
+            "label": "23:00",
+            "utc_offset_s": -14400
+          },
+          {
+            "elapsed_s": 86400,
+            "label": "24:00",
+            "utc_offset_s": -14400
+          }
+        ],
+        "paths": [
+          {
+            "event_id": null,
+            "points": [
+              [
+                0.0,
+                0
+              ],
+              [
+                0.3333333333333333,
+                0
+              ]
+            ]
+          },
+          {
+            "event_id": "event-0001",
+            "points": [
+              [
+                0.3333333333333333,
+                0
+              ],
+              [
+                1.0,
+                0
+              ]
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "date": "2026-10-03",
+      "timezone": "America/New_York",
+      "start_at": "2026-10-03T04:00:00+00:00",
+      "end_at": "2026-10-04T04:00:00+00:00",
+      "duration_s": 86400,
+      "intervals": [
+        {
+          "event_id": "event-0001",
+          "status": "OFF",
+          "start_at": "2026-10-03T04:00:00+00:00",
+          "end_at": "2026-10-03T22:00:00+00:00",
+          "distance_m": 0,
+          "assumed_outside_trip": false
+        },
+        {
+          "event_id": "event-0002",
+          "status": "D",
+          "start_at": "2026-10-03T22:00:00+00:00",
+          "end_at": "2026-10-03T23:00:00+00:00",
+          "distance_m": 100000,
+          "assumed_outside_trip": false
+        },
+        {
+          "event_id": "event-0003",
+          "status": "ON",
+          "start_at": "2026-10-03T23:00:00+00:00",
+          "end_at": "2026-10-04T00:00:00+00:00",
+          "distance_m": 0,
+          "assumed_outside_trip": false
+        },
+        {
+          "event_id": "event-0004",
+          "status": "D",
+          "start_at": "2026-10-04T00:00:00+00:00",
+          "end_at": "2026-10-04T01:00:00+00:00",
+          "distance_m": 100000,
+          "assumed_outside_trip": false
+        },
+        {
+          "event_id": "event-0005",
+          "status": "ON",
+          "start_at": "2026-10-04T01:00:00+00:00",
+          "end_at": "2026-10-04T02:00:00+00:00",
+          "distance_m": 0,
+          "assumed_outside_trip": false
+        },
+        {
+          "event_id": null,
+          "status": "OFF",
+          "start_at": "2026-10-04T02:00:00+00:00",
+          "end_at": "2026-10-04T04:00:00+00:00",
+          "distance_m": 0,
+          "assumed_outside_trip": true
+        }
+      ],
+      "totals_s": {
+        "OFF": 72000,
+        "SB": 0,
+        "D": 7200,
+        "ON": 7200
+      },
+      "distance_m": 200000,
+      "remarks": [
+        {
+          "at": "2026-10-03T04:00:00+00:00",
+          "location_label": "origin",
+          "note": "Continues: Cycle Restart: 34-hour cycle restart; aggregate cycle availability",
+          "event_id": "event-0001"
+        },
+        {
+          "at": "2026-10-03T22:00:00+00:00",
+          "location_label": "En route: origin to pickup",
+          "note": "Drive: Truck road route",
+          "event_id": "event-0002"
+        },
+        {
+          "at": "2026-10-03T23:00:00+00:00",
+          "location_label": "pickup",
+          "note": "Pickup: One hour loading",
+          "event_id": "event-0003"
+        },
+        {
+          "at": "2026-10-04T00:00:00+00:00",
+          "location_label": "En route: pickup to dropoff",
+          "note": "Drive: Truck road route",
+          "event_id": "event-0004"
+        },
+        {
+          "at": "2026-10-04T01:00:00+00:00",
+          "location_label": "dropoff",
+          "note": "Dropoff: One hour unloading",
+          "event_id": "event-0005"
+        },
+        {
+          "at": "2026-10-04T02:00:00+00:00",
+          "location_label": "dropoff",
+          "note": "Assumed off duty outside planned trip",
+          "event_id": null
+        }
+      ],
+      "graph": {
+        "ticks": [
+          {
+            "elapsed_s": 0,
+            "label": "00:00",
+            "utc_offset_s": -14400
+          },
+          {
+            "elapsed_s": 3600,
+            "label": "01:00",
+            "utc_offset_s": -14400
+          },
+          {
+            "elapsed_s": 7200,
+            "label": "02:00",
+            "utc_offset_s": -14400
+          },
+          {
+            "elapsed_s": 10800,
+            "label": "03:00",
+            "utc_offset_s": -14400
+          },
+          {
+            "elapsed_s": 14400,
+            "label": "04:00",
+            "utc_offset_s": -14400
+          },
+          {
+            "elapsed_s": 18000,
+            "label": "05:00",
+            "utc_offset_s": -14400
+          },
+          {
+            "elapsed_s": 21600,
+            "label": "06:00",
+            "utc_offset_s": -14400
+          },
+          {
+            "elapsed_s": 25200,
+            "label": "07:00",
+            "utc_offset_s": -14400
+          },
+          {
+            "elapsed_s": 28800,
+            "label": "08:00",
+            "utc_offset_s": -14400
+          },
+          {
+            "elapsed_s": 32400,
+            "label": "09:00",
+            "utc_offset_s": -14400
+          },
+          {
+            "elapsed_s": 36000,
+            "label": "10:00",
+            "utc_offset_s": -14400
+          },
+          {
+            "elapsed_s": 39600,
+            "label": "11:00",
+            "utc_offset_s": -14400
+          },
+          {
+            "elapsed_s": 43200,
+            "label": "12:00",
+            "utc_offset_s": -14400
+          },
+          {
+            "elapsed_s": 46800,
+            "label": "13:00",
+            "utc_offset_s": -14400
+          },
+          {
+            "elapsed_s": 50400,
+            "label": "14:00",
+            "utc_offset_s": -14400
+          },
+          {
+            "elapsed_s": 54000,
+            "label": "15:00",
+            "utc_offset_s": -14400
+          },
+          {
+            "elapsed_s": 57600,
+            "label": "16:00",
+            "utc_offset_s": -14400
+          },
+          {
+            "elapsed_s": 61200,
+            "label": "17:00",
+            "utc_offset_s": -14400
+          },
+          {
+            "elapsed_s": 64800,
+            "label": "18:00",
+            "utc_offset_s": -14400
+          },
+          {
+            "elapsed_s": 68400,
+            "label": "19:00",
+            "utc_offset_s": -14400
+          },
+          {
+            "elapsed_s": 72000,
+            "label": "20:00",
+            "utc_offset_s": -14400
+          },
+          {
+            "elapsed_s": 75600,
+            "label": "21:00",
+            "utc_offset_s": -14400
+          },
+          {
+            "elapsed_s": 79200,
+            "label": "22:00",
+            "utc_offset_s": -14400
+          },
+          {
+            "elapsed_s": 82800,
+            "label": "23:00",
+            "utc_offset_s": -14400
+          },
+          {
+            "elapsed_s": 86400,
+            "label": "24:00",
+            "utc_offset_s": -14400
+          }
+        ],
+        "paths": [
+          {
+            "event_id": "event-0001",
+            "points": [
+              [
+                0.0,
+                0
+              ],
+              [
+                0.75,
+                0
+              ]
+            ]
+          },
+          {
+            "event_id": "event-0002",
+            "points": [
+              [
+                0.75,
+                0
+              ],
+              [
+                0.75,
+                2
+              ],
+              [
+                0.7916666666666666,
+                2
+              ]
+            ]
+          },
+          {
+            "event_id": "event-0003",
+            "points": [
+              [
+                0.7916666666666666,
+                2
+              ],
+              [
+                0.7916666666666666,
+                3
+              ],
+              [
+                0.8333333333333334,
+                3
+              ]
+            ]
+          },
+          {
+            "event_id": "event-0004",
+            "points": [
+              [
+                0.8333333333333334,
+                3
+              ],
+              [
+                0.8333333333333334,
+                2
+              ],
+              [
+                0.875,
+                2
+              ]
+            ]
+          },
+          {
+            "event_id": "event-0005",
+            "points": [
+              [
+                0.875,
+                2
+              ],
+              [
+                0.875,
+                3
+              ],
+              [
+                0.9166666666666666,
+                3
+              ]
+            ]
+          },
+          {
+            "event_id": null,
+            "points": [
+              [
+                0.9166666666666666,
+                3
+              ],
+              [
+                0.9166666666666666,
+                0
+              ],
+              [
+                1.0,
+                0
+              ]
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "warnings": [
+    "Vehicle dimensions and live parking availability have not been checked.",
+    "Cycle availability is conservatively accumulated until a 34-hour restart; prior daily recap records were not supplied."
+  ],
+  "planner_version": "1",
+  "export_token": "v1.1791014944.eJztV01v2zgU_CsEr0t3SerDivbUNu0xKXZzWQSGwUq0Q0QmBYpykQ383xeinMaUKJtx20thHwyZ1rw3Hg7lN89wy3UjlIQ5JBDBSq0bmN8_w5IZDnNIMU1nBM8whQgaseH_Kdmtv99wLQr25w3_tvxX6UeIYGOYNktmHNQdjnOMc4z_sO8QQS7LwU3R-Kay1cwIJZcNzLM0xhhBIQ3XW1b19PiWS7MUJcxlW1W2uWkbmMPbz59_hAu9I3TIRTSGyYIvNzDHCLKmaTe8XKrWNKLkS6NFDXOjW75Dh7z6yxnGmMBAfqPWYVqF8FuxquG7BYJGGVY1na7PlsuLvP98sOhr-357A3O8G5XWfMP0Y78BJ7WtVNFvYcW-8grmUGmxFhIiKJW11vueKFCrFShb8wT2jEFdMSl5CSxzNNjqTuSTup3s_fGpqDj4m9t9yEEUzx5Uq0Fhl3W__Bdg67Xma2b4_gu2ZaJiX0UlzJND7HCvO5HXmtUPncJGFHu9eMXqhped8BjBF14vhFtTLNVq1XDT3TAjcYyxtdMrKkrxIZAEA-fUAdJgIMGZg4zCkXHsIONwZIYdZBKMpMQVKA1HJq5C83Bk5iqUhe8mdRW6epMPDpDkDQ66chQi4RaKI0chEu6hOHUUIuEeSrCjEAn3UBK7CoV7KJm7CoV7KCWuQuEeSmNXoXAPpZmrULiHukfCAZKGe2ieOArRNzyGrhyFaLiHMuooRMM9tP9v-4485qEFgjUzD_7xolZCmu6re_wOI7xA9_hdNHghvFgcGwEOa3iw6J7Y0ovdYteVGQ5g0VkDmGdeGA8V8Q8NYG8edII4RXf0rEGsH3QmtoEeEryepDfq7KUXHaFHMLYn7AyOkSPizTTJYX_vvuKfrmEcoqGns5ce-TUaJkEaevp7Sf4sHwYnFU_PsEMbnFR8QWD_p_AaBPrBscsC3dUgDtD97kxnAs8xPz2XK2mEbHmTg185oo8yhOfMj7h-kkCr1vAc9KyBUaAWxWNbv_K_1mLLc3Cn2-IRaMXKHjLBhPqZDA_2iMmw6xf7OQe3kgMrUqVYKeR6om3kaes5sEcE6Al0ApRa1Wq1OleB2E9leCxHVDxt7cKBBq08rkLib33SBqPWZ-bYS0y8xMRLTLzExEtM_B1i4nTUe4mL8-RYQKQDlL17D6P9xRVJD1-ITleLhtXGWG_JyC5nbjaNUTTdKR508mC9JXsCmf11k8WTYfHvYnRXfeXBT0jHZMcJ3oPxlhqE8sXuf2C_YYw=:1xCYKG:EaytuPHJc2JT2VvpjxDytRRrXlr00uUNbxQEXeCWl18"
+}

@@ -32,3 +32,32 @@
 @media(min-width: 425px) { .page-shell { padding-inline: 20px; } }
 @media(min-width: 640px) { .page-shell { padding-inline: 24px; } .empty-map { height: 280px; } }
 @media(min-width: 1024px) { .planner-layout { grid-template-columns: 350px minmax(0, 1fr); } }
+[data-slot="command-item"][data-selected="true"] { background: var(--accent); color: var(--primary); }
+[data-slot="tabs-trigger"][data-state="active"] { background: var(--accent); color: var(--primary); box-shadow: none; }
+.route-map { height: 380px; width: 100%; background: var(--secondary); z-index: 0; }
+.haul-marker-wrapper { background: transparent; border: 0; }
+.haul-marker { display: grid; place-items: center; width: 34px; height: 34px; border: 3px solid white; border-radius: 50%; background: var(--primary); color: white; font-family: var(--font-body); font-size: 12px; font-weight: 700; box-shadow: var(--shadow-micro); }
+.haul-marker.is-selected { border-color: var(--color-brand-dark); background: white; color: var(--primary); }
+.leaflet-popup-content { font: 14px/1.5 var(--font-body); }
+.leaflet-popup-content p { margin: 8px 0; }
+.leaflet-control-attribution { font-size: 11px; }
+.print-only { display: none; }
+.duty-trace[role="button"] { cursor: pointer; }
+@media(min-width: 1280px) { .route-workspace { grid-template-columns: minmax(0, 1fr) 260px; } .itinerary-list { max-height: 630px; overflow-y: auto; padding-right: 6px; } .route-map { height: 570px; } }
+@page { size: landscape; margin: 12mm; }
+@media print {
+  header,footer,.trip-form,.workspace-hero,.no-print,.empty-workspace,.screen-result { display: none !important; }
+  body { background: white; color: #101114; }
+  main.page-shell { padding: 0; max-width: none; }
+  .planner-layout { display: block; }
+  .print-only { display: block !important; }
+  .print-sheet { break-after: page; }
+  .print-sheet:last-child { break-after: auto; }
+  .log-sheet { padding: 0; border: 0; box-shadow: none; }
+  .log-graph-scroll { overflow: visible; border-radius: 0; }
+  .log-graph { min-width: 0; width: 100%; }
+  .duty-trace { stroke: #101114 !important; }
+  .log-sheet p,.log-sheet dd,.log-sheet dt { font-size: 12px; }
+  .log-sheet h3 { font-size: 20px; }
+  .log-sheet div { break-inside: avoid; }
+}
