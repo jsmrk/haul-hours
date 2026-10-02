@@ -1,5 +1,5 @@
 from dataclasses import dataclass, fields, is_dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
 from enum import StrEnum
 
@@ -72,7 +72,7 @@ class DutyEvent:
 
     @property
     def duration_s(self) -> int:
-        return int((self.end_at - self.start_at).total_seconds())
+        return int((self.end_at.astimezone(timezone.utc) - self.start_at.astimezone(timezone.utc)).total_seconds())
 
 
 def to_wire(value):
