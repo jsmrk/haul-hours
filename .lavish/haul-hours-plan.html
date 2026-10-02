@@ -229,15 +229,16 @@
     <p class="quiet">Exact file responsibilities, interfaces, tests, verification commands, and assessment coverage.</p>
     <details class="card p-6"><summary>Read all nine tasks</summary><div class="document mt-6"><h1>Haul Hours Implementation Plan</h1>
 <blockquote>
-<p><strong>For agentic workers:</strong> REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (<code>- [ ]</code>) syntax for tracking. This is a planning deliverable; implementation has not been requested in this phase.</p>
+<p><strong>For agentic workers:</strong> REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (<code>- [ ]</code>) syntax for tracking. Implementation is authorized. Execute the tasks continuously and record verification in the execution ledger.</p>
 </blockquote>
 <p><strong>Goal:</strong> Build the assessment&#39;s trip planner with actual road routing, feasible fuel/rest stops, and matching daily driver logs.</p>
-<p><strong>Architecture:</strong> Django owns validation, provider access, scheduling, and log generation. A pure Python duty engine supports a stop-aware scheduler; React consumes its one event timeline for maps, itinerary, summaries, SVG sheets, and PDF export. The application is stateless and deploys as separate frontend and API projects.</p>
-<p><strong>Tech Stack:</strong> Python 3.12; Django 5.2 LTS; Django REST Framework; HTTPX; timezonefinder/zoneinfo; ReportLab; React; TypeScript; Vite; Leaflet; Temporal polyfill; pytest; Vitest/Testing Library; Playwright. Lock compatible supported versions during setup.</p>
-<p><strong>Spec:</strong> <a href="#functional-spec">Functionality and logic specification</a> and <a href="#design-system">Kraken-inspired design system</a>. Read both before implementing; they own behavior, assumptions, visual requirements, and source references.</p>
+<p><strong>Architecture:</strong> Django owns validation, provider access, scheduling, and log generation. A pure Python duty engine supports a stop-aware scheduler; React consumes its one event timeline for maps, itinerary, summaries, SVG sheets, and PDF export. The application is stateless. One npm-workspaces monorepo holds the frontend, Django backend, contracts, and strict TypeScript tooling; frontend and API deploy separately.</p>
+<p><strong>Tech Stack:</strong> Python 3.12–3.14; Django 5.2 LTS (5.2.8 or later for Python 3.14); Django REST Framework; HTTPX; timezonefinder/zoneinfo; ReportLab; React; strict TypeScript; Vite; shadcn/ui (Radix); Tailwind CSS v4; Leaflet; Temporal polyfill; pytest; Vitest/Testing Library; Playwright. Lock compatible supported versions during setup.</p>
+<p><strong>Spec:</strong> <a href="../specs/2026-10-02-haul-hours-design.md">Functionality and logic specification</a> and <a href="../specs/2026-10-02-haul-hours-design-system.md">Kraken-inspired design system</a>. Read both before implementing; they own behavior, assumptions, visual requirements, and source references.</p>
 <h2>Global Constraints</h2>
 <ul>
-<li>Django backend and React frontend.</li>
+<li>Django backend and React frontend in one monorepo. Strict TypeScript covers frontend, tests, configuration, and repository tooling; Django remains Python.</li>
+<li>Use customized shadcn/ui components with Tailwind v4 and CSS semantic tokens; preserve accessible component behavior.</li>
 <li>Required inputs: Current location; Pickup location; Dropoff location; Current Cycle Used (Hrs).</li>
 <li>Property-carrying driver, 70hrs/8days, no adverse driving conditions.</li>
 <li>Fueling at least once every 1,000 miles.</li>
@@ -268,7 +269,9 @@
 <li>Fast location edits, resubmissions, and expired export tokens must never mix different trips&#39; maps, sheets, or PDF downloads (Tasks 7–8).</li>
 </ol>
 <h2>File structure and ownership</h2>
-<pre><code class="language-text">backend/
+<pre><code class="language-text">package.json, package-lock.json, tsconfig.tools.json
+scripts/{backend.ts,generate-contracts.ts}
+backend/
   manage.py, pyproject.toml, requirements.txt, requirements-dev.txt
   config/{settings.py,urls.py,wsgi.py}
   planner/
@@ -287,7 +290,7 @@ frontend/
   package.json, vite.config.ts, tsconfig.json, index.html
   src/{main.tsx,App.tsx}
   src/styles/{tokens.css,global.css}
-  src/components/ui/{Button.tsx,Badge.tsx,Field.tsx,Panel.tsx}
+  src/components/ui/{button.tsx,badge.tsx,field.tsx,card.tsx,input.tsx,...}
   src/features/trip/
     contracts.generated.ts, api.ts, departure.ts, useTripPlanner.ts
     TripForm.tsx, LocationField.tsx, TripResults.tsx
@@ -318,19 +321,19 @@ docs/{deployment.md,walkthrough.md,acceptance.md}
 </li>
 <li><p>Produce <code>GET /api/v1/health</code> with <code>{&quot;status&quot;:&quot;ok&quot;,&quot;planner_version&quot;:&quot;1&quot;}</code>. No provider or database access.</p>
 </li>
-<li><p><input disabled="" type="checkbox"> <strong>Step 1: Write failing contract and health tests.</strong></p>
+<li><p><input checked="" disabled="" type="checkbox"> <strong>Step 1: Write failing contract and health tests.</strong></p>
 <p><code>test_health_is_stateless</code> asserts status 200 and exact response above. <code>test_contract_round_trip</code> asserts offset-aware times remain the same UTC instants, enum values remain stable, and cycle <code>&quot;69.50&quot;</code> survives serialization as a decimal string. <code>test_required_assessment_fields</code> asserts the four required fields are present in the request contract.</p>
 </li>
-<li><p><input disabled="" type="checkbox"> <strong>Step 2: Run the tests and confirm missing-contract/endpoint failures.</strong></p>
+<li><p><input checked="" disabled="" type="checkbox"> <strong>Step 2: Run the tests and confirm missing-contract/endpoint failures.</strong></p>
 <p>Run: <code>cd backend &amp;&amp; python -m pytest tests/test_contracts.py -q</code>. Expected: failing tests for missing application contracts/health response; fix tooling issues before treating a failure as meaningful.</p>
 </li>
-<li><p><input disabled="" type="checkbox"> <strong>Step 3: Implement the contracts and foundation.</strong></p>
-<p>Define the constants in Global Constraints, UTC-aware immutable domain records, <code>LogMetadata</code>, explicit errors, and health routing. Configure Django without sessions, admin, auth, or persistent trip models. Scaffold React with a health-state view and import <code>global.css</code>/<code>tokens.css</code>. Define the exact color, typography, spacing, radius, shadow, and breakpoint tokens from the design system specification; use the supplied font fallbacks. Lock dependencies and record development commands.</p>
+<li><p><input checked="" disabled="" type="checkbox"> <strong>Step 3: Implement the contracts and foundation.</strong></p>
+<p>Define the constants in Global Constraints, UTC-aware immutable domain records, <code>LogMetadata</code>, explicit errors, and health routing. Configure Django without sessions, admin, auth, or persistent trip models. Configure private npm workspaces with frontend named @haul-hours/web, one root package-lock, root dev/test/typecheck/build commands, and TypeScript scripts for Python and contract tooling. Enable strict, allowJs:false, noUncheckedIndexedAccess, and exactOptionalPropertyTypes in application and tooling configs. Initialize shadcn/ui Radix components with Tailwind v4, CSS variables, and @ aliases; map semantic tokens to the supplied design values. Keep Python dependencies in the backend virtual environment. Scaffold React with a health-state view and import <code>global.css</code>/<code>tokens.css</code>. Define the exact color, typography, spacing, radius, shadow, and breakpoint tokens from the design system specification; use the supplied font fallbacks. Lock dependencies and record development commands.</p>
 </li>
-<li><p><input disabled="" type="checkbox"> <strong>Step 4: Verify both applications run.</strong></p>
+<li><p><input checked="" disabled="" type="checkbox"> <strong>Step 4: Verify both applications run.</strong></p>
 <p>Run the contract tests, <code>python manage.py check</code>, and <code>cd frontend &amp;&amp; npm run build</code>. Expected: passing contracts, no Django configuration issues, and a successful frontend build.</p>
 </li>
-<li><p><input disabled="" type="checkbox"> <strong>Step 5: Commit the task deliverable.</strong> Stage only Task 1 files; commit as <code>chore: establish planner contracts and application foundation</code>.</p>
+<li><p><input checked="" disabled="" type="checkbox"> <strong>Step 5: Commit the task deliverable.</strong> Stage only Task 1 files; commit as <code>chore: establish planner contracts and application foundation</code>.</p>
 </li>
 </ul>
 <h2>Task 2: Implement normalized map and stop providers</h2>
@@ -357,17 +360,17 @@ docs/{deployment.md,walkthrough.md,acceptance.md}
 </li>
 <li><p><code>point_at_elapsed(leg: RoadLeg, elapsed_s: int) -&gt; Coordinate</code>; <code>distance_at_elapsed(leg: RoadLeg, elapsed_s: int) -&gt; int</code>. Both conserve normalized step totals.</p>
 </li>
-<li><p><input disabled="" type="checkbox"> <strong>Step 1: Write failing provider-contract tests.</strong></p>
+<li><p><input checked="" disabled="" type="checkbox"> <strong>Step 1: Write failing provider-contract tests.</strong></p>
 <p>Fixtures assert longitude/latitude order; GeoJSON/step totals; missing/null matrix entries; skipped route requests for co-located points; US/border/ferry options; truck profile selection; invalid JSON; timeouts; 429/Retry-After; and bounded cache hits. Assert a fuel place with <code>hgv=no</code> is excluded, and a fuel-only POI without parking evidence is not marked as a long-rest site. Assert no API key appears in public errors.</p>
 </li>
-<li><p><input disabled="" type="checkbox"> <strong>Step 2: Run <code>python -m pytest tests/test_providers.py -q</code>.</strong> Expected: meaningful failures for provider contracts not implemented.</p>
+<li><p><input checked="" disabled="" type="checkbox"> <strong>Step 2: Run <code>python -m pytest tests/test_providers.py -q</code>.</strong> Expected: meaningful failures for provider contracts not implemented.</p>
 </li>
-<li><p><input disabled="" type="checkbox"> <strong>Step 3: Implement the adapter methods above.</strong></p>
+<li><p><input checked="" disabled="" type="checkbox"> <strong>Step 3: Implement the adapter methods above.</strong></p>
 <p>Use backend-only credentials and HTTPX deadlines, normalize data, resolve location timezone, and map provider failures to <code>PlanningProblem</code>. Include user-agent/attribution metadata. Overpass queries use bounded circles/corridor anchors and tag evidence; deduplicate by provider ID and keep at most 100 candidates. Implement the spec&#39;s cache lifetimes and bounded retry rules. Provide a fixture-backed <code>RoadNetworkFake</code> implementing both provider protocols for later scheduler tests.</p>
 </li>
-<li><p><input disabled="" type="checkbox"> <strong>Step 4: Run provider tests and Django checks.</strong> Expected: all tests pass without live network calls. With a configured key, perform one explicitly marked integration check of geocoding, a short truck route, and a bounded POI search; record provider capabilities, not guessed quota values.</p>
+<li><p><input checked="" disabled="" type="checkbox"> <strong>Step 4: Run provider tests and Django checks.</strong> Expected: all tests pass without live network calls. With a configured key, perform one explicitly marked integration check of geocoding, a short truck route, and a bounded POI search; record provider capabilities, not guessed quota values.</p>
 </li>
-<li><p><input disabled="" type="checkbox"> <strong>Step 5: Commit as <code>feat: add routing and real stop provider adapters</code></strong>.</p>
+<li><p><input checked="" disabled="" type="checkbox"> <strong>Step 5: Commit as <code>feat: add routing and real stop provider adapters</code></strong>.</p>
 </li>
 </ul>
 <h2>Task 3: Implement and audit duty-clock transitions</h2>
@@ -384,18 +387,18 @@ docs/{deployment.md,walkthrough.md,acceptance.md}
 </li>
 <li><p><code>audit_timeline(request: TripRequest, events: tuple[DutyEvent, ...]) -&gt; tuple[str, ...]</code>, independently checking event continuity and legal driving windows rather than calling the scheduler.</p>
 </li>
-<li><p><input disabled="" type="checkbox"> <strong>Step 1: Write failing duty tests with exact boundaries.</strong></p>
+<li><p><input checked="" disabled="" type="checkbox"> <strong>Step 1: Write failing duty tests with exact boundaries.</strong></p>
 <p>Assert driving is allowed up to 28,800 seconds before a break; 1,799 non-driving seconds do not reset that counter, while 1,800 do. Assert adjacent 900-second ON and 900-second OFF intervals together qualify as a driving interruption but do not daily-reset. Assert pickup/fuel ON qualify without clearing cycle usage. Assert 39,600 driving seconds and a 50,400-second window each prohibit another driving second. Assert 35,999 OFF seconds do not daily-reset; 36,000 do. Assert 122,400 OFF clears cycle usage and subsumes daily reset. Assert midnight does not reset anything.</p>
 <p>For a rested request with cycle <code>&quot;69.50&quot;</code>, assert a 3,600-second pickup produces 253,800 used seconds and no subsequent driving allowance. For final unloading, assert finishing beyond the driving window is valid and does not append rest. Independent audit must reject a deliberately injected one-second driving violation and an overlapping event.</p>
 </li>
-<li><p><input disabled="" type="checkbox"> <strong>Step 2: Run <code>python -m pytest tests/test_duty.py -q</code>.</strong> Expected: missing transition/allowance failures.</p>
+<li><p><input checked="" disabled="" type="checkbox"> <strong>Step 2: Run <code>python -m pytest tests/test_duty.py -q</code>.</strong> Expected: missing transition/allowance failures.</p>
 </li>
-<li><p><input disabled="" type="checkbox"> <strong>Step 3: Implement the state operations above using UTC elapsed seconds.</strong></p>
+<li><p><input checked="" disabled="" type="checkbox"> <strong>Step 3: Implement the state operations above using UTC elapsed seconds.</strong></p>
 <p>Initialize full daily allowances without clearing cycle usage. Combine adjacent qualifying non-driving time even when its OFF/ON status changes; only uninterrupted OFF contributes to daily/cycle resets. Start the window on the first ON/D event. Record cycle work fully, even above 70, and clamp further driving availability until reset. Keep fuel distance across all rests and reset it only after fuel.</p>
 </li>
-<li><p><input disabled="" type="checkbox"> <strong>Step 4: Run duty and contract tests.</strong> Expected: all specified boundaries pass; the audit detects injected defects.</p>
+<li><p><input checked="" disabled="" type="checkbox"> <strong>Step 4: Run duty and contract tests.</strong> Expected: all specified boundaries pass; the audit detects injected defects.</p>
 </li>
-<li><p><input disabled="" type="checkbox"> <strong>Step 5: Commit as <code>feat: enforce duty clocks and timeline invariants</code></strong>.</p>
+<li><p><input checked="" disabled="" type="checkbox"> <strong>Step 5: Commit as <code>feat: enforce duty clocks and timeline invariants</code></strong>.</p>
 </li>
 </ul>
 <h2>Task 4: Build a scheduler that reaches actual stops</h2>
@@ -412,19 +415,19 @@ docs/{deployment.md,walkthrough.md,acceptance.md}
 </li>
 <li><p><code>summarize_trip(trip: ScheduledTrip) -&gt; TripSummary</code>.</p>
 </li>
-<li><p><input disabled="" type="checkbox"> <strong>Step 1: Write failing complete-trip fixtures.</strong></p>
+<li><p><input checked="" disabled="" type="checkbox"> <strong>Step 1: Write failing complete-trip fixtures.</strong></p>
 <p>A two-hour-driving trip without needed stops has exactly 7,200 D seconds plus 7,200 ON service seconds and completes four hours after departure. Co-located current/pickup/drop-off produces two distinct service events totaling 7,200 ON seconds, zero D miles, and no unnecessary rest.</p>
 <p>Include scenarios for a long multi-day trip, exact 1,609,344-meter fuel range, fuel before exceeding that range including detours, a 70-used initial restart, and a near-exhausted cycle after pickup. Assert 34-hour restart is one 122,400-second event, not a restart plus another daily rest. Assert ON fuel and OFF rest remain distinct sequential events. Assert service prevents an unnecessary short break, and restart/rest days preserve fuel mileage.</p>
 <p>Use an asymmetric fake road network where the closest POI is unreachable or its exit is too long. Assert the scheduler chooses the feasible alternative, or returns <code>NO_FEASIBLE_STOP_FOUND</code> with no complete summary. A missing POI result must not become a fabricated named stop. Exercise bounded backtracking, exhausted budget, early stopping, and exact driving-boundary arrivals.</p>
 </li>
-<li><p><input disabled="" type="checkbox"> <strong>Step 2: Run <code>python -m pytest tests/test_scheduler.py -q</code>.</strong> Expected: missing scheduler failures for the fixtures.</p>
+<li><p><input checked="" disabled="" type="checkbox"> <strong>Step 2: Run <code>python -m pytest tests/test_scheduler.py -q</code>.</strong> Expected: missing scheduler failures for the fixtures.</p>
 </li>
-<li><p><input disabled="" type="checkbox"> <strong>Step 3: Implement <code>schedule_trip</code> following the spec&#39;s decision loop.</strong></p>
+<li><p><input checked="" disabled="" type="checkbox"> <strong>Step 3: Implement <code>schedule_trip</code> following the spec&#39;s decision loop.</strong></p>
 <p>Preserve mandatory waypoint order, use step timing for prospective boundaries, prune through matrix estimates, and verify road edges before emitting events. Check the next reachable stopping opportunity and fuel-only exit reserve. Respect candidate/search/backtracking limits. Assemble output geometry from the accepted edges, not a later reroute. Use deterministic tie-breaking and finish after unloading. Call the independent audit before returning success.</p>
 </li>
-<li><p><input disabled="" type="checkbox"> <strong>Step 4: Run provider, duty, and scheduler suites.</strong> Expected: every successful fixture has an empty audit result, no fuel span above 1,609,344 meters, exact event/summary agreement, and real fixture POI references on scheduled stops.</p>
+<li><p><input checked="" disabled="" type="checkbox"> <strong>Step 4: Run provider, duty, and scheduler suites.</strong> Expected: every successful fixture has an empty audit result, no fuel span above 1,609,344 meters, exact event/summary agreement, and real fixture POI references on scheduled stops.</p>
 </li>
-<li><p><input disabled="" type="checkbox"> <strong>Step 5: Commit as <code>feat: schedule trips with verified fuel and rest stops</code></strong>.</p>
+<li><p><input checked="" disabled="" type="checkbox"> <strong>Step 5: Commit as <code>feat: schedule trips with verified fuel and rest stops</code></strong>.</p>
 </li>
 </ul>
 <h2>Task 5: Generate daily log models and matching PDFs</h2>
@@ -449,18 +452,18 @@ docs/{deployment.md,walkthrough.md,acceptance.md}
 </li>
 <li><p><code>sign_log_bundle(logs: tuple[DailyLog, ...]) -&gt; str</code>; <code>verify_log_bundle(token: str, now: datetime) -&gt; tuple[DailyLog, ...]</code>.</p>
 </li>
-<li><p><input disabled="" type="checkbox"> <strong>Step 1: Write failing daily/PDF tests.</strong></p>
+<li><p><input checked="" disabled="" type="checkbox"> <strong>Step 1: Write failing daily/PDF tests.</strong></p>
 <p>Assert normal-day totals equal 86,400 seconds, graph row order is OFF/SB/D/ON, SB is zero when unused, and an event spanning midnight keeps its ID and conserved miles on both dates. Intermediate restart dates must render; midnight completion must not create an empty date. Outside-trip padding must carry its assumption flag and leave trip completion unchanged.</p>
 <p>For <code>America/New_York</code>, assert 2026-03-08 has 82,800 seconds and 2026-11-01 has 90,000 seconds, with labeled skipped/repeated hours. A ten-hour UTC rest crossing DST must still be exactly 36,000 seconds. Assert PDF page count equals selected sheet count, status totals/header text match the log model, missing metadata says &quot;Not provided&quot;, and signature is blank. Assert token tampering fails and a token beyond 24 hours expires.</p>
 </li>
-<li><p><input disabled="" type="checkbox"> <strong>Step 2: Run <code>python -m pytest tests/test_logs.py tests/test_pdf.py -q</code>.</strong> Expected: missing log/export failures.</p>
+<li><p><input checked="" disabled="" type="checkbox"> <strong>Step 2: Run <code>python -m pytest tests/test_logs.py tests/test_pdf.py -q</code>.</strong> Expected: missing log/export failures.</p>
 </li>
-<li><p><input disabled="" type="checkbox"> <strong>Step 3: Implement the interfaces above.</strong></p>
+<li><p><input checked="" disabled="" type="checkbox"> <strong>Step 3: Implement the interfaces above.</strong></p>
 <p>Clip at timezone-aware local boundaries and derive ticks from UTC chronology. Allocate split distance from road-step profiles and residuals. Generate graph paths once, consume them in ReportLab, and preserve the projection/outside-trip labels. Use Django timestamp signing with a stable backend secret and a planner-versioned compressed payload; validate size before signing, decompression, and drawing.</p>
 </li>
-<li><p><input disabled="" type="checkbox"> <strong>Step 4: Run log/PDF suites and visually inspect normal, multi-day, and DST PDFs.</strong> Expected: numerical assertions pass and every sheet has readable ticks, transitions, remarks, and metadata. Store expected fixtures; avoid brittle assertions against raw PDF binary bytes.</p>
+<li><p><input checked="" disabled="" type="checkbox"> <strong>Step 4: Run log/PDF suites and visually inspect normal, multi-day, and DST PDFs.</strong> Expected: numerical assertions pass and every sheet has readable ticks, transitions, remarks, and metadata. Store expected fixtures; avoid brittle assertions against raw PDF binary bytes.</p>
 </li>
-<li><p><input disabled="" type="checkbox"> <strong>Step 5: Commit as <code>feat: generate projected daily sheets and signed PDF exports</code></strong>.</p>
+<li><p><input checked="" disabled="" type="checkbox"> <strong>Step 5: Commit as <code>feat: generate projected daily sheets and signed PDF exports</code></strong>.</p>
 </li>
 </ul>
 <h2>Task 6: Expose the planning and export API</h2>
@@ -477,21 +480,21 @@ docs/{deployment.md,walkthrough.md,acceptance.md}
 </li>
 <li><p>Produce <code>python manage.py export_schema --output ../contracts/trip.schema.json</code> from the API serializers, not a hand-maintained second contract.</p>
 </li>
-<li><p><input disabled="" type="checkbox"> <strong>Step 1: Write failing endpoint tests.</strong></p>
+<li><p><input checked="" disabled="" type="checkbox"> <strong>Step 1: Write failing endpoint tests.</strong></p>
 <p>Assert cycle <code>&quot;0&quot;</code>/<code>&quot;70&quot;</code> accepted; negative, over-70, nonnumeric/nonfinite, or over-two-decimal input rejected with field errors. Assert coordinates, US region, timezone, departure offset and metadata are validated. Test all spec error/status mappings, including 409 safe prefix, 422 route cap, 429, 503, 504, 410 token expiry, and 413 oversize payload. Assert exported PDF uses the returned timeline token without calling routing providers. Verify changing header metadata cannot alter a duty interval.</p>
 </li>
-<li><p><input disabled="" type="checkbox"> <strong>Step 2: Run <code>python -m pytest tests/test_api.py -q</code>.</strong> Expected: missing planning/export handlers or response-contract failures.</p>
+<li><p><input checked="" disabled="" type="checkbox"> <strong>Step 2: Run <code>python -m pytest tests/test_api.py -q</code>.</strong> Expected: missing planning/export handlers or response-contract failures.</p>
 </li>
-<li><p><input disabled="" type="checkbox"> <strong>Step 3: Implement the endpoints and error envelopes.</strong></p>
+<li><p><input checked="" disabled="" type="checkbox"> <strong>Step 3: Implement the endpoints and error envelopes.</strong></p>
 <p>Create request budgets at the API boundary, call adapters → scheduler → logs → signing, and serialize one consistent result. Validate provider-leg limits before expensive stop searches. Set CORS to the configured frontend origin, keep secrets out of responses, and include request IDs in server logs. The API returns a bounded complete result atomically; there is no persisted job ID. Generate the JSON Schema and add a deterministic schema-drift check to CI.</p>
 </li>
-<li><p><input disabled="" type="checkbox"> <strong>Step 4: Run the entire backend suite, schema generation, and Django checks.</strong> Expected: all tests pass offline, generated schema is stable, and response fields match the spec.</p>
+<li><p><input checked="" disabled="" type="checkbox"> <strong>Step 4: Run the entire backend suite, schema generation, and Django checks.</strong> Expected: all tests pass offline, generated schema is stable, and response fields match the spec.</p>
 </li>
-<li><p><input disabled="" type="checkbox"> <strong>Step 5: Commit as <code>feat: expose trip planning and daily log export endpoints</code></strong>.</p>
+<li><p><input checked="" disabled="" type="checkbox"> <strong>Step 5: Commit as <code>feat: expose trip planning and daily log export endpoints</code></strong>.</p>
 </li>
 </ul>
 <h2>Task 7: Build trip input, timezone handling, and request state</h2>
-<p><strong>Files:</strong> Implement frontend <code>contracts.generated.ts</code>, <code>api.ts</code>, <code>departure.ts</code>, <code>useTripPlanner.ts</code>, <code>TripForm.tsx</code>, <code>LocationField.tsx</code>, <code>trip.test.tsx</code>, and <code>departure.test.ts</code>; create <code>frontend/src/components/ui/{Button.tsx,Badge.tsx,Field.tsx,Panel.tsx}</code> using the shared tokens.</p>
+<p><strong>Files:</strong> Implement frontend <code>contracts.generated.ts</code>, <code>api.ts</code>, <code>departure.ts</code>, <code>useTripPlanner.ts</code>, <code>TripForm.tsx</code>, <code>LocationField.tsx</code>, <code>trip.test.tsx</code>, and <code>departure.test.ts</code>; create <code>frontend/src/components/ui/{button.tsx,badge.tsx,field.tsx,card.tsx,input.tsx,...}</code> using the shared tokens.</p>
 <p><strong>Interfaces:</strong></p>
 <ul>
 <li><p>Generate TypeScript from <code>contracts/trip.schema.json</code> with <code>json-schema-to-typescript</code>; commit the generated output and check drift.</p>
@@ -506,20 +509,22 @@ docs/{deployment.md,walkthrough.md,acceptance.md}
 </li>
 <li><p><code>useTripPlanner()</code> exposes form, selected locations, phase (<code>idle/loading/complete/blocked/error</code>), result, problem, submit/cancel/reset, and previous-result status.</p>
 </li>
-<li><p><code>Button</code> consumes native button attributes plus <code>variant: &#39;primary&#39; | &#39;outlined&#39; | &#39;subtle&#39; | &#39;white&#39; | &#39;secondary&#39;</code> and optional <code>loading: boolean</code>; <code>Badge</code> consumes children and <code>variant: &#39;neutral&#39; | &#39;success&#39;</code>; <code>Field</code> binds label, control ID, hint, and error; <code>Panel</code> provides a semantic section with title and children. Use native controls and visible focus states.</p>
+<li><p>Use locally generated shadcn/ui Button, Badge, Field, Card, Input, Popover/Command, Tabs, Alert, Collapsible, and loading primitives. Customize Button default/outline/secondary to the supplied palette and add subtle/white variants; all have 12px corners. Add success/neutral Badge variants with 6px/8px corners; Card has 16px corners. Preserve Radix keyboard/focus behavior. Do not create parallel hand-built UI primitives.</p>
 </li>
-<li><p><input disabled="" type="checkbox"> <strong>Step 1: Write failing interaction tests.</strong></p>
+<li><p>API responses start as unknown and are validated against the generated JSON Schema before narrowing to generated TypeScript types. No application-owned JavaScript/JSX, any, or ts-ignore.</p>
+</li>
+<li><p><input checked="" disabled="" type="checkbox"> <strong>Step 1: Write failing interaction tests.</strong></p>
 <p>Assert autocomplete is debounced 300 ms, keyboard-selectable, and ignored below three characters. Editing a selected address clears its coordinates. Default departure represents the same current instant when origin timezone changes; an explicit user-edited time is interpreted in the selected log timezone. Assert DST rejection/choice behavior. Cycle validation must match the backend.</p>
 <p>Simulate slow old search/planning responses after a new query/submission; assert they cannot overwrite current state. Assert double submit is disabled, cancellation is safe, blocked problems show safe-prefix information, and form restoration cannot restore a stale selected address under a different label.</p>
 </li>
-<li><p><input disabled="" type="checkbox"> <strong>Step 2: Run <code>npm run test -- trip.test.tsx departure.test.ts</code>.</strong> Expected: missing UI/state/helper failures.</p>
+<li><p><input checked="" disabled="" type="checkbox"> <strong>Step 2: Run <code>npm run test -- trip.test.tsx departure.test.ts</code>.</strong> Expected: missing UI/state/helper failures.</p>
 </li>
-<li><p><input disabled="" type="checkbox"> <strong>Step 3: Implement the input flow and typed API client.</strong></p>
-<p>Preserve four required assessment fields; group optional departure and log headers separately. Use Temporal plus round-trip wall-time validation, accessible labels/errors, AbortController, request sequence guards, a 190-second timeout, and session-storage form state. Apply shared token-based controls, purple primary actions, white panels, readable neutral hints, 12px buttons, and the specified form/responsive layouts. Keep computation in Django. Show useful loading and provider error messages without fabricated progress percentages.</p>
+<li><p><input checked="" disabled="" type="checkbox"> <strong>Step 3: Implement the input flow and typed API client.</strong></p>
+<p>Preserve four required assessment fields; group optional departure and log headers separately. Use Temporal plus round-trip wall-time validation, accessible labels/errors, AbortController, request sequence guards, a 190-second timeout, and session-storage form state. Apply customized shadcn/ui controls, purple primary actions, white panels, readable neutral hints, 12px buttons, and the specified form/responsive layouts. Keep computation in Django. Show useful loading and provider error messages without fabricated progress percentages.</p>
 </li>
-<li><p><input disabled="" type="checkbox"> <strong>Step 4: Run frontend tests, TypeScript checking, and build.</strong> Expected: matching validation, stale-response protection, and successful compilation.</p>
+<li><p><input checked="" disabled="" type="checkbox"> <strong>Step 4: Run frontend tests, TypeScript checking, and build.</strong> Expected: matching validation, stale-response protection, and successful compilation.</p>
 </li>
-<li><p><input disabled="" type="checkbox"> <strong>Step 5: Commit as <code>feat: add trip form and timezone-safe planning requests</code></strong>.</p>
+<li><p><input checked="" disabled="" type="checkbox"> <strong>Step 5: Commit as <code>feat: add trip form and timezone-safe planning requests</code></strong>.</p>
 </li>
 </ul>
 <h2>Task 8: Present route, itinerary, daily sheets, and exports</h2>
@@ -534,36 +539,36 @@ docs/{deployment.md,walkthrough.md,acceptance.md}
 </li>
 <li><p>Map, itinerary, and graph selections refer to backend event IDs; use <code>driving_leg_id</code> to select road edges.</p>
 </li>
-<li><p><input disabled="" type="checkbox"> <strong>Step 1: Write failing result tests.</strong></p>
+<li><p><input checked="" disabled="" type="checkbox"> <strong>Step 1: Write failing result tests.</strong></p>
 <p>Assert pickup-before-dropoff order, arrival vs completion labels, counts and totals from backend data, map/itinerary event synchronization, and preserved road detours. Test sheet navigation, normal/DST ticks, OFF/SB/D/ON labels, visible assumption remarks, one-day/all-day export selection, and print page breaks. Assert an expired token asks for recalculation and an older in-flight PDF cannot be mislabeled as the new trip&#39;s export. Assert blocked results have no complete ETA or full-trip download action.</p>
 </li>
-<li><p><input disabled="" type="checkbox"> <strong>Step 2: Run <code>npm run test -- trip.test.tsx logs.test.tsx</code>.</strong> Expected: missing result rendering/export behavior failures.</p>
+<li><p><input checked="" disabled="" type="checkbox"> <strong>Step 2: Run <code>npm run test -- trip.test.tsx logs.test.tsx</code>.</strong> Expected: missing result rendering/export behavior failures.</p>
 </li>
-<li><p><input disabled="" type="checkbox"> <strong>Step 3: Implement the components above.</strong></p>
+<li><p><input checked="" disabled="" type="checkbox"> <strong>Step 3: Implement the components above.</strong></p>
 <p>Leaflet displays accepted geometry with a purple route, distinct origin/pickup/drop-off/fuel/break/rest/restart icons, explicit legends, and visible attribution. Show stop evidence/availability limitations where they help users interpret a location. Render turn instructions from accepted legs and daily paths from backend graph data. Apply the specified white/purple workspace, summary typography, subtle selected-event panels, semantic controls, readable empty/error states, keyboard selection, PDF blobs, and print CSS. Keep duty traces and printed records dark and readable in grayscale.</p>
 </li>
-<li><p><input disabled="" type="checkbox"> <strong>Step 4: Run tests/build and inspect a representative complete result in a browser.</strong> Expected: map, itinerary, summary, sheet, and PDF agree; mobile controls and print layout remain usable.</p>
+<li><p><input checked="" disabled="" type="checkbox"> <strong>Step 4: Run tests/build and inspect a representative complete result in a browser.</strong> Expected: map, itinerary, summary, sheet, and PDF agree; mobile controls and print layout remain usable.</p>
 </li>
-<li><p><input disabled="" type="checkbox"> <strong>Step 5: Commit as <code>feat: display synchronized route and daily log outputs</code></strong>.</p>
+<li><p><input checked="" disabled="" type="checkbox"> <strong>Step 5: Commit as <code>feat: display synchronized route and daily log outputs</code></strong>.</p>
 </li>
 </ul>
 <h2>Task 9: Verify the whole application and prepare assessment delivery</h2>
 <p><strong>Files:</strong> Create <code>frontend/e2e/trip-planner.spec.ts</code>, <code>.github/workflows/ci.yml</code>, backend/frontend Vercel configuration, <code>docs/{deployment.md,walkthrough.md,acceptance.md}</code>, and expand <code>README.md</code>.</p>
 <p><strong>Interfaces:</strong> Produce repeatable CI commands, deployable frontend/API configurations, environment documentation, an assessment acceptance matrix, and a timed Loom script. This task uses all earlier contracts without changing scheduling rules.</p>
 <ul>
-<li><p><input disabled="" type="checkbox"> <strong>Step 1: Write failing end-to-end acceptance cases.</strong></p>
+<li><p><input checked="" disabled="" type="checkbox"> <strong>Step 1: Write failing end-to-end acceptance cases.</strong></p>
 <p>Submit a short trip, a multi-day route, a route requiring fuel, and a cycle-exhaustion route against deterministic provider fixtures. Assert one-hour pickup/drop-off, map/itinerary/log agreement, multi-sheet navigation, exported PDF, blocked-stop handling, and a provider outage. Download/parse one PDF to confirm its dates and totals match the visible result. Include a selected location changing during planning and preserve the correct result snapshot.</p>
 </li>
-<li><p><input disabled="" type="checkbox"> <strong>Step 2: Run <code>npm run test:e2e</code>.</strong> Expected: any missing full-flow integration fails with a concrete assertion rather than setup errors.</p>
+<li><p><input checked="" disabled="" type="checkbox"> <strong>Step 2: Run <code>npm run test:e2e</code>.</strong> Expected: any missing full-flow integration fails with a concrete assertion rather than setup errors.</p>
 </li>
 <li><p><input disabled="" type="checkbox"> <strong>Step 3: Complete deployment/CI/documentation configuration.</strong></p>
 <p>CI runs backend tests, Django checks, schema/TypeScript drift checks, frontend tests/typecheck/build, and fixture-backed Playwright. Configure two Vercel project roots, stable backend signing secret, provider key, allowed hosts/origins, API base URL, and timeout below the platform maximum. Provide <code>.env.example</code> values without secrets. Record free-key quotas from the account and configure adapter pacing accordingly. Document that process caches are expendable and upstream throttling is handled.</p>
 <p>README includes setup, commands, assumptions, real-stop search limitations, supported routing bounds, source links/attribution, and delivery links when available. <code>walkthrough.md</code> allocates about four minutes across input, route/stops, sheets/export, Django scheduling, React presentation, and tests. <code>acceptance.md</code> maps every assessment requirement to a demo/check.</p>
 </li>
-<li><p><input disabled="" type="checkbox"> <strong>Step 4: Run the complete local verification once.</strong></p>
+<li><p><input checked="" disabled="" type="checkbox"> <strong>Step 4: Run the complete local verification once.</strong></p>
 <p>Backend: <code>python -m pytest -q</code> and <code>python manage.py check</code>. Frontend: <code>npm run test -- --run</code>, <code>npm run typecheck</code>, <code>npm run build</code>, <code>npm run test:e2e</code>. Generate contract files and require no diff. Expected: all checks pass.</p>
 </li>
-<li><p><input disabled="" type="checkbox"> <strong>Step 5: Verify the supplied design system in the complete flows.</strong></p>
+<li><p><input checked="" disabled="" type="checkbox"> <strong>Step 5: Verify the supplied design system in the complete flows.</strong></p>
 <p>Verify the tokens/components established in Tasks 1 and 7–8 against the design specification. Inspect complete, loading, validation-error, and blocked flows at 375/425/640/768/1024/1280/1536px and an additional narrower mobile viewport. Check open suggestions, long location names, visible keyboard focus, 12px button radii, heading/body hierarchy, readable secondary text, map attribution, and internal sheet scrolling. Verify print/PDF grayscale legibility and layout. Use fallback fonts until licensed Kraken files are supplied; font availability does not block delivery. Preserve all event contracts and scheduling checks.</p>
 </li>
 <li><p><input disabled="" type="checkbox"> <strong>Step 6: Publish and validate assessment deliverables during execution.</strong></p>
@@ -613,13 +618,13 @@ docs/{deployment.md,walkthrough.md,acceptance.md}
 <td>9</td>
 </tr>
 </tbody></table>
-<p>Recommended execution is native, in the listed order: the scheduler, log model, and API share contracts, so sequential implementation makes their boundaries easier to verify. Review the plan before starting implementation. Hosting requires an openrouteservice key and publishing account access. The supplied Kraken-inspired design system is part of the plan; proprietary font files are optional because fallback stacks are defined. No product dependencies or application code were created while preparing this plan.</p>
+<p>Recommended execution is native, in the listed order: the scheduler, log model, and API share contracts, so sequential implementation makes their boundaries easier to verify. The user has authorized implementation, including shadcn/ui, strict TypeScript, and the monorepo. Hosting requires an openrouteservice key and publishing account access. The supplied Kraken-inspired design system is part of the plan; proprietary font files are optional because fallback stacks are defined. Build and verification progress is recorded in the execution ledger.</p>
 </div></details>
   </section>
   <section id="functional-spec">
     <h2>Full functional specification</h2>
     <details class="card p-6"><summary>Read requirements, assumptions, and scheduling logic</summary><div class="document mt-6"><h1>Haul Hours Functionality and Logic Specification</h1>
-<p>Status: planning deliverable with the user&#39;s Kraken-inspired design system incorporated.</p>
+<p>Status: approved for implementation, including the supplied design system, shadcn/ui, strict TypeScript, and a monorepo.</p>
 <h2>Goal and source</h2>
 <p>Build the assessment&#39;s Django and React application: accept a trip, calculate a feasible driving schedule, show the actual road route and scheduled stops, and generate daily driver log sheets from that schedule. Accuracy, understandable results, and a publicly testable hosted application determine success.</p>
 <p>Source: <code>/home/jess/Downloads/new-full-stack-dev-assessment.docx</code>. The document contains the written assessment and a branding image, but no example log sheet or application design.</p>
@@ -634,7 +639,7 @@ docs/{deployment.md,walkthrough.md,acceptance.md}
 <li>Fueling at least once every 1,000 miles.</li>
 <li>1 hour for pickup and drop-off, interpreted as one hour for each activity.</li>
 <li>Deliver a live hosted version, GitHub code, and a 3–5 minute Loom walkthrough of the application and code.</li>
-<li>The assessment evaluates output accuracy and good UI/UX. Apply the user&#39;s supplied <a href="#design-system">Kraken-inspired design system</a>.</li>
+<li>The assessment evaluates output accuracy and good UI/UX. Apply the user&#39;s supplied <a href="2026-10-02-haul-hours-design-system.md">Kraken-inspired design system</a>.</li>
 </ul>
 <h2>Decisions established with the user</h2>
 <table>
@@ -678,11 +683,12 @@ docs/{deployment.md,walkthrough.md,acceptance.md}
 <p>Display miles and hours/minutes. Internally calculate elapsed time in integer seconds and normalize road distances to integer meters, rounding provider totals upward. The 1,000-mile fuel threshold is exactly 1,609,344 meters. Preserve provider distances and timings per step; allocate normalization residuals so step totals equal their leg totals.</p>
 <p>Add optional log details: driver name, carrier name/address, truck number, trailer number, shipment reference, and starting odometer. Default the log timezone to the departure location&#39;s IANA timezone; allow an explicit home-terminal timezone override. Missing details print as &quot;Not provided&quot;; signatures remain blank. Records are titled &quot;Projected driver daily log&quot; because these are schedules generated from assumptions.</p>
 <p>Provide in-app daily sheets, printing, and a PDF containing either all days or a selected day. Keep the last form in browser session storage. The first release needs no account, database, saved-trip library, background queue, actual vehicle telemetry, signature certification, split sleeper-berth calculation, short-haul exception, or adverse-condition extension.</p>
-<p>The <a href="#design-system">design system specification</a> defines the exact palette, type hierarchy, components, responsive layouts, and print treatment. Use white surfaces, primary <code>#7132f5</code>, near-black <code>#101114</code>, and 12px button corners. Proprietary fonts use the supplied fallback stacks until licensed files are available. Accessible form behavior, loading/error states, map selection, and log navigation are part of this plan.</p>
+<p>The <a href="2026-10-02-haul-hours-design-system.md">design system specification</a> defines the exact palette, type hierarchy, components, responsive layouts, and print treatment. Use white surfaces, primary <code>#7132f5</code>, near-black <code>#101114</code>, and 12px button corners. Proprietary fonts use the supplied fallback stacks until licensed files are available. Accessible form behavior, loading/error states, map selection, and log navigation are part of this plan.</p>
 <h2>Architecture and selected approach</h2>
+<p>Keep frontend/, backend/, contracts/, and docs/ in one private npm-workspaces monorepo. Root commands run both services, tests, contract generation, and builds; Django uses its own Python virtual environment. Strict TypeScript also covers repository tooling and frontend configuration/tests.</p>
 <p>Choose a stateless Django API with a pure Python scheduling engine, typed provider adapters, and a React/TypeScript client. Map markers, itinerary, summary, and daily sheets all consume the same backend event timeline. React does not calculate a second schedule.</p>
 <p>Other approaches considered: putting scheduling in React would duplicate backend validation; starting with accounts, a database, and queued jobs would add infrastructure without serving the assessment&#39;s inputs and outputs. The selected approach makes the driving rules directly testable and avoids persistent storage dependencies for the hosted assessment.</p>
-<p>Use Python 3.12, Django 5.2 LTS, Django REST Framework, HTTPX, timezonefinder/zoneinfo, and ReportLab. Use React, TypeScript, Vite, Leaflet, and the Temporal polyfill for timezone-safe departure input. Resolve and lock compatible supported package versions during implementation. Django&#39;s supported-release table confirms 5.2 is an LTS series. <a href="https://www.djangoproject.com/download/">Django releases</a></p>
+<p>Use Python 3.12–3.14, Django 5.2 LTS (5.2.8+ on Python 3.14), Django REST Framework, HTTPX, timezonefinder/zoneinfo, and ReportLab. Use React, strict TypeScript, Vite, customized shadcn/ui Radix components, Tailwind CSS v4, Leaflet, and the Temporal polyfill for timezone-safe departure input. Resolve and lock compatible supported package versions during implementation. Django&#39;s supported-release table confirms 5.2 is an LTS series. <a href="https://www.djangoproject.com/download/">Django releases</a></p>
 <p>Use openrouteservice for geocoding and <code>driving-hgv</code> directions, Overpass/OpenStreetMap for stop discovery, and OpenStreetMap raster tiles through Leaflet. Keep routing credentials on the backend. Heavy-vehicle routing is supported, but weight/height/length restrictions require supplied vehicle parameters; the assessment provides none, so the route summary must state that vehicle dimensions have not been checked. <a href="https://openrouteservice.org/services/">Services</a>, <a href="https://giscience.github.io/openrouteservice/api-reference/endpoints/directions/routing-options">routing options</a></p>
 <h2>User flow and outputs</h2>
 <ol>
@@ -762,7 +768,7 @@ docs/{deployment.md,walkthrough.md,acceptance.md}
 </div></details>
   </section>
 <section id="design-system"><h2>Kraken-inspired visual system</h2><p class="quiet">The supplied palette, typography, component states, and responsive layouts are now implementation requirements.</p><details class="card p-6"><summary>Read the complete design specification</summary><div class="document mt-6"><h1>Haul Hours Design System</h1>
-<p>Source: the user&#39;s &quot;Design System Inspired by Kraken&quot; message. This document applies that direction to the assessment application and supplements the <a href="#functional-spec">functional specification</a>. It defines implementation requirements; it does not change routing or duty calculations.</p>
+<p>Source: the user&#39;s &quot;Design System Inspired by Kraken&quot; message. This document applies that direction to the assessment application and supplements the <a href="2026-10-02-haul-hours-design.md">functional specification</a>. It defines implementation requirements; it does not change routing or duty calculations.</p>
 <h2>Visual direction</h2>
 <p>White surfaces, near-black text, a cool neutral scale, and purple calls to action create a calm trip-planning workspace. Use the Haul Hours name throughout the application. Favor clear form labels, readable route details, and legible daily records over decorative content. Use restrained borders and the supplied subtle shadows to separate panels.</p>
 <p>The initial application is a light theme. Dark mode is outside this design specification.</p>
@@ -956,6 +962,7 @@ docs/{deployment.md,walkthrough.md,acceptance.md}
 </tbody></table>
 <p>Use the 7px role only for nonessential decoration, if needed. Form labels, errors, timestamps, map legends, and log remarks remain readable at 14px or above; compact tick labels can use the 12px role. At mobile widths, reduce hero headings to the supplied 36px or 28px roles without shrinking body text.</p>
 <h2>Components and states</h2>
+<p>Use locally generated shadcn/ui TypeScript components with the Radix base and Tailwind CSS v4. Customize their semantic CSS variables and component variants to this specification. Keep accessible keyboard, focus, and labeling behavior. Use Card for panels and Field for labeled inputs rather than parallel custom primitive components. Button corners are explicitly 12px; Card corners 16px; success/neutral Badge corners 6px/8px.</p>
 <p>All button variants use a 12px radius, following the user&#39;s final &quot;all buttons&quot; rule. This resolves the earlier white-button example&#39;s 10px radius in favor of consistency. Never use pill-shaped buttons.</p>
 <table>
 <thead>

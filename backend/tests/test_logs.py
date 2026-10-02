@@ -6,6 +6,7 @@ import pytest
 
 from planner.contracts import DutyEvent, DutyStatus, EventKind
 from planner.logs.days import build_daily_logs
+from planner.routing.contracts import RoadLeg, RoadStep
 from planner.scheduling.scheduler import ScheduledTrip
 from tests.network import road
 
@@ -61,3 +62,16 @@ def test_restart_keeps_whole_off_duty_intermediate_days(trip_request):
     assert logs[1].totals_s[DutyStatus.OFF] == 86400
     assert not logs[1].intervals[0].assumed_outside_trip
     assert all(0 <= point[0] <= 1 and 0 <= point[1] <= 3 for log in logs for path in log.graph.paths for point in path.points)
+
+
+def test_midnight_split_conserves_leading_zero_duration_step_distance(trip_request):
+    start = datetime(2026, 10, 3, 3, 59, 30, tzinfo=timezone.utc)
+    trip = trip_at(trip_request, start, 101, meters=1001)
+    leg = trip.road_legs[0]
+    legs = (RoadLeg(leg.id, leg.origin, leg.destination, (
+        RoadStep("Depart", 1, 0, (leg.origin.coordinate,)),
+        RoadStep("Continue", 1000, 101, (leg.origin.coordinate, leg.destination.coordinate)),
+    ), 1001, 101),)
+    logs = build_daily_logs(replace(trip, road_legs=legs))
+    assert len(logs) == 2
+    assert sum(log.distance_m for log in logs) == 1001

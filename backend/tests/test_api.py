@@ -102,3 +102,19 @@ def test_location_query_limits_and_provider_configuration():
     with override_settings(ORS_API_KEY="", PROVIDER_MODE="live"):
         response = Client().get("/api/v1/locations?q=Boston&limit=5")
     assert response.status_code == 503
+
+
+@pytest.mark.parametrize("departure", ["2026-10-03T03:00:00.123456Z", "2026-03-08T05:00:00.123456Z", "2026-11-01T04:00:00.123456Z"])
+def test_fractional_departure_is_normalized_and_all_daily_seconds_are_conserved(trip_request, departure):
+    payload = to_wire(trip_request)
+    payload["departure_at"] = departure
+    a, b, c = trip_request.current_location, trip_request.pickup_location, trip_request.dropoff_location
+    network = RoadNetworkFake((road(a, b, 3600, 100001), road(b, c, 3600, 100001)))
+    with patch("planner.api.views.get_providers", return_value=(network, network)):
+        response = post(Client(), "trips/plan", payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert all(sum(log["totals_s"].values()) == log["duration_s"] for log in data["daily_logs"])
+    assert sum(log["totals_s"]["D"] for log in data["daily_logs"]) == data["summary"]["driving_s"]
+    assert datetime.fromisoformat(data["request"]["departure_at"]).microsecond == 0
+    assert sum(log["distance_m"] for log in data["daily_logs"]) == data["summary"]["distance_m"]

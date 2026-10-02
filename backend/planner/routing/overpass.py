@@ -29,6 +29,10 @@ class OverpassProvider:
         query = "[out:json][timeout:12];(" + "".join(fragments) + ");out center tags 100;"
         data = request_json(self.client, "POST", self.url, budget, 15, pacer=self.pacer, data={"data": query},
                             headers={"User-Agent": "HaulHours/1.0"})
+        # Overpass can report query failures with HTTP 200 and partial/empty elements.
+        # Such responses cannot prove that no stopping places exist and must not be cached.
+        if data.get("remark"):
+            raise PlanningProblem("PROVIDER_UNAVAILABLE", "Stop discovery is temporarily unavailable. Please try again.", 503, True)
         try:
             found = {}
             for element in data["elements"]:

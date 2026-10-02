@@ -116,3 +116,33 @@ def test_stop_evidence_excludes_no_trucks_and_does_not_invent_overnight_parking(
     assert [place.id for place in places] == ["osm:node:1", "osm:way:3"]
     assert places[0].supports_fuel and not places[0].supports_long_rest
     assert places[1].supports_long_rest
+
+
+@pytest.mark.parametrize("elements", [[], [{"type": "node", "id": 1, "lon": -79, "lat": 40, "tags": {"amenity": "fuel"}}]])
+def test_overpass_http_success_with_runtime_error_is_retryable_and_not_cached(elements):
+    calls = []
+    def handler(request):
+        calls.append(request)
+        return httpx.Response(200, json={"remark": "runtime error: Query timed out", "elements": elements})
+    provider = OverpassProvider(client=httpx.Client(transport=httpx.MockTransport(handler)))
+    search = StopSearch(((-79, 40),), 2000, False, False)
+    for _ in range(2):
+        with pytest.raises(PlanningProblem) as caught:
+            provider.find_candidates(search, budget())
+        assert caught.value.status == 503 and caught.value.retryable
+    assert len(calls) == 2
+
+
+def test_cumulative_distance_includes_leading_instantaneous_steps_from_zero():
+    provider = ORSProvider("key", client=httpx.Client(transport=httpx.MockTransport(
+        lambda request: httpx.Response(200, json={"features": [{
+            "geometry": {"coordinates": [[-80, 40], [-79.5, 40], [-79, 40]]},
+            "properties": {"summary": {"distance": 1001, "duration": 101}, "segments": [{"steps": [
+                {"distance": 1, "duration": .1, "way_points": [0, 1]},
+                {"distance": 1000, "duration": 100.9, "way_points": [1, 2]},
+            ]}]}}]}))))
+    leg = provider.route(A, B, budget())
+    assert leg.steps[0].duration_s == 0
+    assert distance_at_elapsed(leg, 0) == 0
+    assert distance_at_elapsed(leg, leg.duration_s) == leg.distance_m
+    assert point_at_elapsed(leg, 0) == A.coordinate

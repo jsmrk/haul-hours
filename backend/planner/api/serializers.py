@@ -87,7 +87,7 @@ class TripRequestSerializer(StrictSerializer):
     def to_domain(self) -> TripRequest:
         data = self.validated_data
         return TripRequest(*(Location(**data[field]) for field in ("current_location", "pickup_location", "dropoff_location")),
-                           data["cycle_used_hours"], data["departure_at"], data["log_timezone"], LogMetadata(**data["metadata"]))
+                           data["cycle_used_hours"], data["departure_at"].replace(microsecond=0), data["log_timezone"], LogMetadata(**data["metadata"]))
 
 
 class DutyEventSerializer(StrictSerializer):

@@ -10,6 +10,8 @@ def haversine_m(a: Coordinate, b: Coordinate) -> float:
 
 
 def distance_at_elapsed(leg: RoadLeg, elapsed_s: int) -> int:
+    if elapsed_s <= 0:
+        return 0
     if elapsed_s >= leg.duration_s:
         return leg.distance_m
     remaining = max(0, elapsed_s)
@@ -24,6 +26,8 @@ def distance_at_elapsed(leg: RoadLeg, elapsed_s: int) -> int:
 
 
 def point_at_elapsed(leg: RoadLeg, elapsed_s: int) -> Coordinate:
+    if elapsed_s <= 0:
+        return leg.origin.coordinate
     if elapsed_s >= leg.duration_s:
         return leg.destination.coordinate
     remaining = max(0, elapsed_s)

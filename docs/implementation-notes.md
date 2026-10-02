@@ -11,3 +11,11 @@ Other implementation details: Django 5.2's compatible patch supports the host's 
 Review findings and final verification evidence will be appended here before handoff.
 
 Local verification on 2026-10-02: 70 backend tests, 15 frontend tests and 9 full-stack Playwright tests passed. Ruff, strict TypeScript, Django check, schema drift check and Vite build passed. Browser checks covered 320–1536px, explicit fixture labeling, focus, no page overflow and one-page normal sheet printing. The Vite build reports a non-failing main chunk warning (~707 kB minified / 217 kB gzip); the map is loaded separately.
+
+## Final review
+
+A fresh reviewer found no illegal driving or accepted fuel-only exit dead end. Three reproduced defects were fixed with failing regression tests before the code change: Overpass HTTP-200 runtime errors were wrongly cached as no stops; a leading zero-duration routing step lost a meter in log partitions; and fractional default departures lost a second from daily totals. The latter two were upgraded from Minor to Important because normal inputs could produce inconsistent records. Departure is normalized to whole seconds at the API boundary; cumulative distance starts at zero; partial/error stop responses return retryable 503 without caching. Tests cover midnight and both DST transitions.
+
+Decisions on review scope: live quotas/hosting/publishing/Loom remain pending; the implementer verified browser layouts and printing directly; bounded search, parking evidence, conservative recap and process-local pacing retain their approved/documented limitations. Costs: an existing feasible route can be missed, a mapped facility can be unavailable, and upstream quotas can still be exceeded across processes. Additional arbitrary malformed upstream shapes and extreme calendar inputs were not broadened in this pass; rare unsupported inputs may receive a generic API error. The non-failing bundle-size warning remains a performance improvement for later.
+
+Final verification after fixes on 2026-10-02: 77 backend tests, 15 frontend tests and 9 browser tests passed, with lint/typecheck/Django/contracts/build checks green. Local fast-forward integration places the implementation in the original user workspace; the feature branch/worktree stay available because external delivery remains pending. Nothing has been pushed to GitHub.
