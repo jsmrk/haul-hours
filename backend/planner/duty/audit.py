@@ -1,8 +1,14 @@
 from datetime import timezone
 
 from planner.constants import (
-    BREAK_DRIVE_S, BREAK_S, CYCLE_RESTART_S, CYCLE_S, DAILY_DRIVE_S,
-    DAILY_REST_S, DRIVING_WINDOW_S, FUEL_RANGE_M,
+    BREAK_DRIVE_S,
+    BREAK_S,
+    CYCLE_RESTART_S,
+    CYCLE_S,
+    DAILY_DRIVE_S,
+    DAILY_REST_S,
+    DRIVING_WINDOW_S,
+    FUEL_RANGE_M,
 )
 from planner.contracts import DutyEvent, DutyStatus, EventKind, TripRequest
 

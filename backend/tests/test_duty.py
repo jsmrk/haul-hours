@@ -1,7 +1,6 @@
 from dataclasses import replace
-from datetime import timedelta
+from datetime import datetime, timedelta
 from decimal import Decimal
-from datetime import datetime
 from zoneinfo import ZoneInfo
 
 import pytest
