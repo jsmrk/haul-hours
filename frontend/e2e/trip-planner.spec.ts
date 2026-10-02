@@ -57,6 +57,30 @@ test("multi-day route includes fuel and rests and every day remains navigable", 
   await expect(page.getByText(`Day 2 of ${dates.length}`)).toBeVisible();
 });
 
+test("log events are exposed to assistive technology and selectable from the keyboard", async ({ page }) => {
+  await setupTrip(page);
+  await page.getByRole("button", { name: "Plan my trip" }).click();
+  await expect(page.getByText("Your trip, mapped out.")).toBeVisible();
+  await page.getByRole("tab", { name: /Daily logs/ }).click();
+  const session = await page.context().newCDPSession(page);
+  const tree = await session.send("Accessibility.getFullAXTree");
+  const events = tree.nodes.filter((node) => !node.ignored && node.role?.value === "button" && /^Select (OFF|SB|D|ON) event /.test(String(node.name?.value)));
+  expect(events.map((node) => node.name?.value)).toEqual([
+    "Select D event event-0001", "Select ON event event-0002",
+    "Select D event event-0003", "Select ON event event-0004",
+  ]);
+  const driving = page.getByRole("button", { name: "Select D event event-0001" });
+  await driving.focus();
+  await driving.press("Enter");
+  await expect(driving).toHaveAttribute("aria-pressed", "true");
+  const pickup = page.getByRole("button", { name: "Select ON event event-0002" });
+  await pickup.focus();
+  await pickup.press("Space");
+  await expect(pickup).toHaveAttribute("aria-pressed", "true");
+  await expect(driving).toHaveAttribute("aria-pressed", "false");
+  await session.detach();
+});
+
 test("fuel route counts its accepted detour and on-duty fuel interruption", async ({ page }) => {
   await setupTrip(page, "Los Angeles, CA");
   await page.getByRole("button", { name: "Plan my trip" }).click();

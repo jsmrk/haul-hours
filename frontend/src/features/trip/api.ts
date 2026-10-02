@@ -20,7 +20,8 @@ async function failure(response: Response): Promise<never> {
   throw new ApiProblem(response.status, "API_ERROR", "The planner could not complete this request. Please retry.", response.status >= 500);
 }
 
-async function request(path: string, options: RequestInit, signal: AbortSignal, timeout: number): Promise<Response> {
+async function request<T>(path: string, options: RequestInit, signal: AbortSignal, timeout: number,
+                          read: (response: Response) => Promise<T>): Promise<T> {
   const controller = new AbortController();
   const cancel = () => controller.abort();
   if (signal.aborted) controller.abort();
@@ -30,11 +31,12 @@ async function request(path: string, options: RequestInit, signal: AbortSignal, 
   try {
     const response = await fetch(base + "/api/v1/" + path, { ...options, signal: controller.signal });
     if (!response.ok) return await failure(response);
-    return response;
+    return await read(response);
   } catch (error) {
     if (timedOut) throw new ApiProblem(504, "CLIENT_TIMEOUT", "Planning took too long. Please try again.", true);
     if (signal.aborted) throw new DOMException("Cancelled", "AbortError");
     if (error instanceof ApiProblem) throw error;
+    if (error instanceof SyntaxError) throw new ApiProblem(502, "INVALID_RESPONSE", "The planner returned an unreadable response. Please retry.", true);
     throw new ApiProblem(503, "CONNECTION_FAILED", "Could not reach the planner. Check your connection and try again.", true);
   } finally {
     clearTimeout(timer);
@@ -43,27 +45,28 @@ async function request(path: string, options: RequestInit, signal: AbortSignal, 
 }
 
 export async function searchLocations(query: string, signal: AbortSignal): Promise<Location[]> {
-  const response = await request(`locations?q=${encodeURIComponent(query)}&limit=5`, {}, signal, 26000);
-  const value: unknown = await response.json();
+  const value: unknown = await request(`locations?q=${encodeURIComponent(query)}&limit=5`, {}, signal, 26000, (response) => response.json());
   return parseLocations(value);
 }
 
 export async function usesFixtureData(signal: AbortSignal): Promise<boolean> {
-  const response = await request("health", {}, signal, 5000);
-  return response.headers.get("X-Haul-Hours-Provider-Mode") === "fixtures";
+  return request("health", {}, signal, 5000, async (response) => {
+    await response.arrayBuffer();
+    return response.headers.get("X-Haul-Hours-Provider-Mode") === "fixtures";
+  });
 }
 
 export async function planTrip(payload: TripRequest, signal: AbortSignal): Promise<PlanResult> {
-  const response = await request("trips/plan", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }, signal, 190000);
-  const value: unknown = await response.json();
+  const value: unknown = await request("trips/plan", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }, signal, 190000, (response) => response.json());
   return parsePlanResult(value);
 }
 
 export async function downloadLogs(result: PlanResult, metadata: LogMetadata, date?: string): Promise<void> {
   const body = { export_token: result.export_token, metadata, ...(date ? { date } : {}) };
-  const response = await request("logs/pdf", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }, new AbortController().signal, 30000);
-  if (!response.headers.get("Content-Type")?.includes("application/pdf")) throw new Error("The export response is not a PDF.");
-  const blob = await response.blob();
+  const blob = await request("logs/pdf", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }, new AbortController().signal, 30000, async (response) => {
+    if (!response.headers.get("Content-Type")?.includes("application/pdf")) throw new ApiProblem(502, "INVALID_RESPONSE", "The export response is not a PDF.", true);
+    return response.blob();
+  });
   const first = result.daily_logs[0]?.date ?? "trip";
   const last = result.daily_logs.at(-1)?.date ?? first;
   const url = URL.createObjectURL(blob);

@@ -19,3 +19,17 @@ A fresh reviewer found no illegal driving or accepted fuel-only exit dead end. T
 Decisions on review scope: live quotas/hosting/publishing/Loom remain pending; the implementer verified browser layouts and printing directly; bounded search, parking evidence, conservative recap and process-local pacing retain their approved/documented limitations. Costs: an existing feasible route can be missed, a mapped facility can be unavailable, and upstream quotas can still be exceeded across processes. Additional arbitrary malformed upstream shapes and extreme calendar inputs were not broadened in this pass; rare unsupported inputs may receive a generic API error. The non-failing bundle-size warning remains a performance improvement for later.
 
 Final verification after fixes on 2026-10-02: 77 backend tests, 15 frontend tests and 9 browser tests passed, with lint/typecheck/Django/contracts/build checks green. Local fast-forward integration places the implementation in the original user workspace; the feature branch/worktree stay available because external delivery remains pending. Nothing has been pushed to GitHub.
+
+## Additional double check
+
+The requested second audit found and fixed three further issues:
+
+- When fuel and duty limits coincide, an earlier fuel-only site can now lead to separate reachable parking. Daily and cycle regressions complete through actual road edges and pass the independent duty audit; fuel-only dead ends remain rejected.
+- Frontend request deadlines and cancellation now cover response-body consumption. Tests exercise stalled location, planning and PDF responses after headers arrive, cancellation during a body read, and malformed JSON.
+- PDF details and location remarks use embedded licensed font subsets for Latin, Greek, Cyrillic, Chinese and Japanese glyphs. Width-based wrapping preserves long values. Newline, tab and CRLF addresses are normalized before measurement. Characters outside the font coverage produce an explicit export error, with browser printing available, rather than silently replacing names. Font provenance and Apache license are included beside the backend assets.
+
+A fresh reviewer checked the fixes and found no remaining concrete issues. The initially suspected graph accessibility issue was not confirmed: Chrome's complete accessibility tree exposes the focusable event buttons despite their omission from the compact snapshot. A browser test now verifies their exposure and Enter/Space selection.
+
+Verification on 2026-10-02: 84 backend tests, 20 frontend tests and 10 browser tests pass; Ruff, strict TypeScript, Django check, contract drift and production build pass. An additional deterministic audit checked 1,188 complete fixture schedules across three route lengths, eleven cycle values, six terminal zones and six departure times. All preserve planned duty seconds and distance across their daily sheets, including 264 spring and 264 fall transition days. Browser print selection shows one selected date or all three restart dates as requested; the resulting three-page print PDF and multilingual backend PDF were visually inspected.
+
+Live-provider/account quotas, hosted URLs, GitHub publishing/reviewer visibility and an actual Loom recording remain unverified and pending external access. The existing main-bundle size warning remains non-failing.

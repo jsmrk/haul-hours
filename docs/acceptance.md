@@ -23,3 +23,5 @@ Local verification uses deterministic network fixtures through the real Django A
 | Actual 3–5-minute Loom | Four-minute script in walkthrough.md | Recording and accessible URL pending |
 
 The implementation plan's final publishing step stays unchecked until all external deliverables are accessible. Passing fixture tests should never be presented as successful live-provider or hosted verification.
+
+Second audit on 2026-10-02: 84 backend / 20 frontend / 10 browser tests pass, with lint, types, Django, contracts and build checks green. Additional evidence covers coincident fuel/duty limits with separate facilities, cancellation/timeouts during response-body transfer, multilingual PDF text and multiline addresses, keyboard/assistive-technology log selection, selected/all-date printing, and 1,188 fixture schedules across cycle and DST boundaries. See implementation-notes.md for fix details and unchanged external delivery gaps.

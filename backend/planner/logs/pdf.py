@@ -1,5 +1,4 @@
 from io import BytesIO
-from textwrap import wrap
 from zoneinfo import ZoneInfo
 
 from reportlab.lib.pagesizes import landscape, letter
@@ -9,6 +8,7 @@ from planner.constants import MAX_BODY_BYTES
 from planner.contracts import DutyStatus, LogMetadata
 from planner.errors import PlanningProblem
 from planner.logs.contracts import DailyLog
+from planner.logs.typography import draw_text, wrap_text
 
 
 def hours(seconds: int) -> str:
@@ -38,12 +38,11 @@ def draw_log_pdf(logs: tuple[DailyLog, ...], metadata: LogMetadata) -> bytes:
             y = 527 - (index // 2) * 28
             canvas.setFont("Helvetica-Bold", 9)
             canvas.drawString(x, y, label)
-            canvas.setFont("Helvetica", 9)
-            header_lines = wrap(value or "Not provided", 62)
+            header_lines = wrap_text(value or "Not provided", 9, 336)
             if len(header_lines) > 2:
-                header_continuations.extend(wrap(f"{label} (full value): {value}", 151))
+                header_continuations.extend(wrap_text(f"{label} (full value): {value}", 8, 720))
             for line_index, line in enumerate(header_lines[:2]):
-                canvas.drawString(x, y - 11 - line_index * 9, line)
+                draw_text(canvas, x, y - 11 - line_index * 9, line, 9)
         left, top, width, row_height = 118, 411, 554, 29
         canvas.setFont("Helvetica-Bold", 9)
         canvas.drawString(700, top + 23, "TOTAL")
@@ -81,9 +80,9 @@ def draw_log_pdf(logs: tuple[DailyLog, ...], metadata: LogMetadata) -> bytes:
         lines = header_continuations
         for remark in log.remarks:
             stamp = remark.at.astimezone(ZoneInfo(log.timezone)).strftime("%H:%M %Z")
-            lines.extend(wrap(f"{stamp} | {remark.location_label} | {remark.note}", 151))
+            lines.extend(wrap_text(f"{stamp} | {remark.location_label} | {remark.note}", 8, 720))
         for index, line in enumerate(lines[:16]):
-            canvas.drawString(36, 237 - index * 10, line)
+            draw_text(canvas, 36, 237 - index * 10, line, 8)
         canvas.setFont("Helvetica", 8)
         canvas.drawString(36, 44, "Signature: __________________________________  (not signed)")
         canvas.drawString(408, 44, "Projection based on supplied trip assumptions.")
@@ -91,9 +90,8 @@ def draw_log_pdf(logs: tuple[DailyLog, ...], metadata: LogMetadata) -> bytes:
         for offset in range(16, len(lines), 46):
             canvas.setFont("Helvetica-Bold", 14)
             canvas.drawString(36, 572, f"{log.date} - Remarks continued")
-            canvas.setFont("Helvetica", 9)
             for index, line in enumerate(lines[offset:offset + 46]):
-                canvas.drawString(36, 545 - index * 11, line)
+                draw_text(canvas, 36, 545 - index * 11, line, 8)
             canvas.showPage()
     canvas.save()
     pdf = buffer.getvalue()

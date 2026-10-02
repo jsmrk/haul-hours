@@ -1,3 +1,4 @@
+from dataclasses import replace
 from datetime import datetime, timedelta, timezone
 from io import BytesIO
 
@@ -44,6 +45,33 @@ def test_pdf_preserves_long_header_values(trip_request):
     reader = PdfReader(BytesIO(draw_log_pdf(logs, LogMetadata(carrier_address=address))))
     text = " ".join(page.extract_text() for page in reader.pages)
     assert "Building 42 Suite 900" in text
+
+
+def test_pdf_preserves_multilingual_names_and_location_remarks(trip_request):
+    request = replace(trip_request, current_location=replace(trip_request.current_location, label="李明物流, Pittsburgh"))
+    logs = build_daily_logs(trip_at(request, datetime(2026, 10, 2, 12, tzinfo=timezone.utc), 7200))
+    metadata = LogMetadata(driver_name="李明", carrier_name="Παπαδόπουλος", shipment_reference="ГРУЗ-123")
+    reader = PdfReader(BytesIO(draw_log_pdf(logs, metadata)))
+    text = " ".join(page.extract_text() for page in reader.pages)
+    for expected in ("李明", "Παπαδόπουλος", "ГРУЗ-123", "李明物流, Pittsburgh"):
+        assert expected in text
+
+
+def test_pdf_reports_unavailable_glyphs_instead_of_silently_replacing_names(trip_request):
+    logs = build_daily_logs(trip_at(trip_request, datetime(2026, 10, 2, 12, tzinfo=timezone.utc), 7200))
+    with pytest.raises(PlanningProblem) as caught:
+        draw_log_pdf(logs, LogMetadata(driver_name="Jess 🚚"))
+    assert caught.value.code == "EXPORT_UNSUPPORTED_TEXT"
+    assert caught.value.status == 400
+
+
+@pytest.mark.parametrize("separator", ["\n", "\t", "\r\n"])
+def test_pdf_accepts_multiline_address_whitespace(trip_request, separator):
+    logs = build_daily_logs(trip_at(trip_request, datetime(2026, 10, 2, 12, tzinfo=timezone.utc), 7200))
+    address = f"123 Main Street{separator}Pittsburgh, PA 15201"
+    reader = PdfReader(BytesIO(draw_log_pdf(logs, LogMetadata(carrier_address=address))))
+    text = " ".join(page.extract_text() for page in reader.pages)
+    assert "123 Main Street Pittsburgh, PA 15201" in text
 
 
 def test_signature_is_checked_before_decompression_and_decoded_size_is_bounded(trip_request, monkeypatch):

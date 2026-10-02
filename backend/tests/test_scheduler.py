@@ -154,3 +154,25 @@ def test_matrix_estimate_cannot_authorize_an_overlong_actual_approach(trip_reque
     assert not any(event.poi_id == bad.id for event in trip.events)
     assert any(event.poi_id == good.id for event in trip.events)
     assert audit_timeline(request, trip.events) == ()
+
+
+@pytest.mark.parametrize("used, reset", [("0", EventKind.DAILY_REST), ("58", EventKind.CYCLE_RESTART)])
+def test_coincident_fuel_and_driving_limits_allow_separate_early_fuel_and_parking(trip_request, used, reset):
+    request = replace(trip_request, cycle_used_hours=Decimal(used))
+    a, b, c = request.current_location, request.pickup_location, request.dropoff_location
+    fuel, parking = place("fuel", -78.7, fuel=True), place("parking", -78.6, rest=True)
+    # At pickup, both fuel and remaining driving/cycle availability bind at eight hours.
+    # Fuel at seven hours still leaves enough legal time to reach separate parking.
+    network = RoadNetworkFake((road(a, b, 10800, 20000), road(b, c, 39600, 2185348),
+                              road(b, fuel.location, 25200, 1400000), road(fuel.location, c, 14400, 785348),
+                              road(b, parking.location, 27000, 1500000),
+                              road(fuel.location, parking.location, 1800, 100000),
+                              road(parking.location, c, 12600, 685348),
+                              road(a, parking.location, 37800, 1520000)), (fuel, parking))
+    trip = schedule_trip(request, network, network, budget())
+    assert [event.kind for event in trip.events] == [EventKind.DRIVE, EventKind.PICKUP, EventKind.DRIVE,
+                                                   EventKind.FUEL, EventKind.DRIVE, reset,
+                                                   EventKind.DRIVE, EventKind.DROPOFF]
+    assert next(event for event in trip.events if event.kind == reset).poi_id == parking.id
+    assert summarize_trip(trip).distance_m == 2205348
+    assert audit_timeline(request, trip.events) == ()

@@ -121,9 +121,10 @@ def schedule_trip(request: TripRequest, routing: RoutingProvider, stops: StopPro
         if arrival_dead_end and stage == 0:
             needs_cycle = state.cycle_used_s + leg.duration_s + SERVICE_S >= CYCLE_S
             needs_daily = not needs_cycle
-        needs_long = (needs_cycle or needs_daily) and not (needs_fuel and boundary < allowance)
-        if needs_fuel and boundary < allowance:
-            # Fuel is the next constraint. Prove that a later rest site is reachable after fueling.
+        needs_long = (needs_cycle or needs_daily) and not (needs_fuel and boundary <= allowance)
+        if needs_fuel and boundary <= allowance:
+            # An earlier fuel stop can leave time to reach separate parking, including tied limits.
+            # The recursive exit proof still rejects fuel-only sites with no legal onward drive.
             needs_cycle = needs_daily = False
 
         # A verified current stopping place can host an immediate needed reset/refuel.
