@@ -65,6 +65,30 @@ test("an empty form can be corrected by typing directly into each location field
   await expect(page.getByText("5h", { exact: true })).toBeVisible();
 });
 
+test("address searches show skeletons until API suggestions are ready", async ({ page }) => {
+  let release: () => void = () => {};
+  const gate = new Promise<void>((resolve) => { release = resolve; });
+  await page.route("**/api/v1/locations?**", async (route) => {
+    const response = await route.fetch();
+    await gate;
+    await route.fulfill({ response });
+  });
+  await page.setViewportSize({ width: 375, height: 900 });
+  await page.goto("/");
+  const input = page.getByRole("combobox", { name: "Current location", exact: true });
+  await input.fill("Pittsburgh");
+  const searching = page.getByRole("status", { name: "Searching locations" });
+  await expect(searching).toBeVisible();
+  await expect(searching.locator('[data-slot="skeleton"]').first()).toBeVisible();
+  await expect(page.getByText(/No matching locations/)).toHaveCount(0);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+  release();
+  await page.getByRole("option", { name: "Pittsburgh, PA", exact: true }).click();
+  await expect(input).toHaveValue("Pittsburgh, PA");
+  await expect(searching).toHaveCount(0);
+  await page.unroute("**/api/v1/locations?**");
+});
+
 test("multi-day route includes fuel and rests and every day remains navigable", async ({ page }) => {
   await setupTrip(page, "San Diego, CA");
   await page.getByRole("button", { name: "Plan my trip" }).click();
@@ -146,7 +170,9 @@ test("editing a selected location cancels planning and preserves the previous sn
   });
   await page.getByLabel("Current cycle used").fill("1");
   await page.getByRole("button", { name: "Plan my trip" }).click();
-  await expect(page.getByRole("status").filter({ hasText: "Finding your way forward" })).toBeVisible();
+  await expect(page.getByRole("status").filter({ hasText: "Building your trip plan" })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Trip plan preview" })).toHaveAttribute("aria-busy", "true");
+  await expect(page.getByText("Your trip, mapped out.")).toHaveCount(0);
   await selectLocation(page, "Drop-off location", "Miami", "Miami, FL");
   release();
   await expect(page.getByRole("status")).toHaveCount(0);
@@ -226,7 +252,8 @@ test("validation, loading and blocked states fit every target width", async ({ p
     const response = await route.fetch(); await gate; await route.fulfill({ response });
   });
   await page.getByRole("button", { name: "Plan my trip" }).click();
-  await expect(page.getByText("Finding your way forward", { exact: true })).toBeVisible();
+  await expect(page.getByText("Building your trip plan", { exact: true })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Trip plan preview" }).locator('[data-slot="skeleton"]').first()).toBeVisible();
   await inspect("loading");
   release();
   await expect(page.getByRole("alert")).toContainText("No feasible sequence");

@@ -34,10 +34,14 @@ def normalize_parts(values: list[float], total: int) -> list[int]:
 
 
 class ORSProvider:
-    def __init__(self, api_key: str, base_url: str = "https://api.openrouteservice.org",
+    def __init__(self, api_key: str, base_url: str = "https://api.heigit.org",
                  client: httpx.Client | None = None, min_interval_s: float = 0):
         self.api_key = api_key
         self.base_url = base_url.rstrip("/")
+        # HeiGIT's gateway has separate service paths; other URLs retain the ORS API-root layout.
+        gateway = httpx.URL(self.base_url).host == "api.heigit.org"
+        self.routing_prefix = "/openrouteservice" if gateway else ""
+        self.geocoding_path = "/pelias/v1/search" if gateway else "/geocode/search"
         self.client = client or httpx.Client()
         self.cache = TTLCache()
         self.pacer = RequestPacer(min_interval_s)
@@ -53,7 +57,7 @@ class ORSProvider:
         cached = self.cache.get(key)
         if cached is not None:
             return cached
-        data = self._request("GET", "/geocode/search", budget,
+        data = self._request("GET", self.geocoding_path, budget,
                              params={"text": query, "size": limit, "boundary.country": "US"})
         try:
             locations = []
@@ -77,7 +81,7 @@ class ORSProvider:
         cached = self.cache.get(key)
         if cached is not None:
             return cached
-        data = self._request("POST", "/v2/directions/driving-hgv/geojson", budget, json={
+        data = self._request("POST", self.routing_prefix + "/v2/directions/driving-hgv/geojson", budget, json={
             "coordinates": [origin.coordinate, destination.coordinate], "instructions": True,
             "options": {"avoid_features": ["ferries"], "avoid_borders": "all"},
         })
@@ -116,7 +120,7 @@ class ORSProvider:
         cached = self.cache.get(key)
         if cached is not None:
             return cached
-        data = self._request("POST", "/v2/matrix/driving-hgv", budget, json={
+        data = self._request("POST", self.routing_prefix + "/v2/matrix/driving-hgv", budget, json={
             "locations": [origin.coordinate, *(place.coordinate for place in destinations)],
             "sources": [0], "destinations": list(range(1, len(destinations) + 1)),
             "metrics": ["distance", "duration"], "units": "m",

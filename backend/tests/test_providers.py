@@ -30,7 +30,13 @@ def test_step_profile_preserves_nonuniform_distance_and_coordinate_order():
     assert point_at_elapsed(leg, 100) == (-79.5, 40)
 
 
-def test_truck_route_uses_accepted_geojson_and_conserves_rounding():
+@pytest.mark.parametrize("base_url,expected_url", [
+    (None, "https://api.heigit.org/openrouteservice/v2/directions/driving-hgv/geojson"),
+    ("https://api.heigit.org/", "https://api.heigit.org/openrouteservice/v2/directions/driving-hgv/geojson"),
+    ("https://api.openrouteservice.org/", "https://api.openrouteservice.org/v2/directions/driving-hgv/geojson"),
+    ("https://routing.example.test/ors/", "https://routing.example.test/ors/v2/directions/driving-hgv/geojson"),
+])
+def test_truck_route_uses_accepted_geojson_and_conserves_rounding(base_url, expected_url):
     requests = []
     def handler(request):
         requests.append(request)
@@ -38,11 +44,15 @@ def test_truck_route_uses_accepted_geojson_and_conserves_rounding():
             "properties": {"summary": {"distance": 1000.1, "duration": 200.1}, "segments": [{"steps": [
                 {"distance": 100.1, "duration": 100.1, "way_points": [0, 1], "instruction": "Turn right"},
                 {"distance": 900, "duration": 100, "way_points": [1, 2], "instruction": "Continue"}]}]}}]})
-    provider = ORSProvider("secret", client=httpx.Client(transport=httpx.MockTransport(handler)))
+    options = {} if base_url is None else {"base_url": base_url}
+    provider = ORSProvider("secret", client=httpx.Client(transport=httpx.MockTransport(handler)), **options)
     leg = provider.route(A, B, budget())
-    assert requests[0].url.path == "/v2/directions/driving-hgv/geojson"
+    assert str(requests[0].url) == expected_url
+    assert requests[0].method == "POST"
+    assert requests[0].headers["Authorization"] == "secret"
     payload = json.loads(requests[0].content)
     assert payload["coordinates"] == [[-80, 40], [-79, 40]]
+    assert payload["instructions"] is True
     assert payload["options"] == {"avoid_features": ["ferries"], "avoid_borders": "all"}
     assert sum(step.distance_m for step in leg.steps) == leg.distance_m == 1001
     assert sum(step.duration_s for step in leg.steps) == leg.duration_s == 201
@@ -52,13 +62,38 @@ def test_truck_route_uses_accepted_geojson_and_conserves_rounding():
     assert len(requests) == 1
 
 
-def test_matrix_preserves_unreachable_entries():
-    provider = ORSProvider("key", client=httpx.Client(transport=httpx.MockTransport(
-        lambda request: httpx.Response(200, json={"distances": [[100, None]], "durations": [[10, None]]}))))
+@pytest.mark.parametrize("base_url,expected_url", [
+    (None, "https://api.heigit.org/openrouteservice/v2/matrix/driving-hgv"),
+    ("https://api.heigit.org/", "https://api.heigit.org/openrouteservice/v2/matrix/driving-hgv"),
+    ("https://api.openrouteservice.org/", "https://api.openrouteservice.org/v2/matrix/driving-hgv"),
+    ("https://routing.example.test/ors/", "https://routing.example.test/ors/v2/matrix/driving-hgv"),
+])
+def test_matrix_preserves_unreachable_entries(base_url, expected_url):
+    requests = []
+    def handler(request):
+        requests.append(request)
+        return httpx.Response(200, json={"distances": [[100, None]], "durations": [[10, None]]})
+    options = {} if base_url is None else {"base_url": base_url}
+    provider = ORSProvider("key", client=httpx.Client(transport=httpx.MockTransport(handler)), **options)
     assert provider.matrix(A, (B, A), budget()) == ((100, 10), None)
+    assert str(requests[0].url) == expected_url
+    assert requests[0].method == "POST"
+    assert requests[0].headers["Authorization"] == "key"
+    assert json.loads(requests[0].content) == {
+        "locations": [[-80, 40], [-79, 40], [-80, 40]],
+        "sources": [0], "destinations": [1, 2], "metrics": ["distance", "duration"], "units": "m",
+    }
+    assert provider.matrix(A, (B, A), budget()) == ((100, 10), None)
+    assert len(requests) == 1
 
 
-def test_geocoding_uses_us_filter_and_accepts_gid_without_an_id_field():
+@pytest.mark.parametrize("base_url,expected_url", [
+    (None, "https://api.heigit.org/pelias/v1/search"),
+    ("https://api.heigit.org/", "https://api.heigit.org/pelias/v1/search"),
+    ("https://api.openrouteservice.org/", "https://api.openrouteservice.org/geocode/search"),
+    ("https://routing.example.test/ors/", "https://routing.example.test/ors/geocode/search"),
+])
+def test_geocoding_uses_us_filter_and_accepts_gid_without_an_id_field(base_url, expected_url):
     requests = []
     def handler(request):
         requests.append(request)
@@ -68,11 +103,17 @@ def test_geocoding_uses_us_filter_and_accepts_gid_without_an_id_field():
             {"geometry": {"coordinates": [-79, 43]}, "properties": {
                 "gid": "pelias:ca", "label": "Canada", "country_a": "CAN"}},
         ]})
-    provider = ORSProvider("key", client=httpx.Client(transport=httpx.MockTransport(handler)))
+    options = {} if base_url is None else {"base_url": base_url}
+    provider = ORSProvider("key", client=httpx.Client(transport=httpx.MockTransport(handler)), **options)
     locations = provider.search_locations("New York", 5, budget())
-    assert requests[0].url.params["boundary.country"] == "US"
+    assert str(requests[0].url.copy_with(query=None)) == expected_url
+    assert requests[0].method == "GET"
+    assert requests[0].headers["Authorization"] == "key"
+    assert dict(requests[0].url.params) == {"text": "New York", "size": "5", "boundary.country": "US"}
     assert [location.id for location in locations] == ["pelias:ny"]
     assert locations[0].timezone == "America/New_York"
+    assert provider.search_locations("New York", 5, budget()) == locations
+    assert len(requests) == 1
 
 
 @pytest.mark.parametrize("response,code,status", [

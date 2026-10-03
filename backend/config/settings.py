@@ -25,7 +25,7 @@ REST_FRAMEWORK = {"UNAUTHENTICATED_USER": None, "DEFAULT_AUTHENTICATION_CLASSES"
                   "DEFAULT_PARSER_CLASSES": ["rest_framework.parsers.JSONParser"]}
 DATA_UPLOAD_MAX_MEMORY_SIZE = 4_000_000
 ORS_API_KEY = os.getenv("ORS_API_KEY", "")
-ORS_BASE_URL = os.getenv("ORS_BASE_URL", "https://api.openrouteservice.org")
+ORS_BASE_URL = os.getenv("ORS_BASE_URL", "https://api.heigit.org")
 OVERPASS_URL = os.getenv("OVERPASS_URL", "https://overpass-api.de/api/interpreter")
 PROVIDER_MODE = os.getenv("PROVIDER_MODE", "live")
 ORS_MIN_INTERVAL_S = float(os.getenv("ORS_MIN_INTERVAL_S", "2"))

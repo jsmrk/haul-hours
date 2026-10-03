@@ -109,3 +109,21 @@ it("lets users type directly into an invalid location field and select a suggest
   expect(screen.queryByRole("option")).not.toBeInTheDocument();
   expect(screen.queryByText("Select a pickup location from the suggestions.")).not.toBeInTheDocument();
 });
+
+it("shows address skeletons while a search is pending and removes them for a short query", async () => {
+  const user = userEvent.setup();
+  let resolveResponse: ((value: Response) => void) | undefined;
+  vi.spyOn(globalThis, "fetch").mockImplementation(() => new Promise((resolve) => { resolveResponse = resolve; }));
+  const props = { label: "Current location", id: "current", onChange: vi.fn() };
+  const { rerender } = render(<LocationField {...props} value={{ query: "New York", location: null }}/>);
+  await user.click(screen.getByRole("combobox", { name: "Current location" }));
+  expect(screen.getByRole("status", { name: "Searching locations" })).toBeVisible();
+  expect(document.querySelectorAll('[data-slot="skeleton"]').length).toBeGreaterThan(0);
+  expect(screen.queryByText(/No matching locations/)).not.toBeInTheDocument();
+  await waitFor(() => expect(resolveResponse).toBeDefined());
+  rerender(<LocationField {...props} value={{ query: "ab", location: null }}/>);
+  expect(screen.queryByRole("status", { name: "Searching locations" })).not.toBeInTheDocument();
+  expect(document.querySelector('[data-slot="skeleton"]')).not.toBeInTheDocument();
+  await act(async () => { resolveResponse?.(new Response(JSON.stringify({ locations: [location] }))); });
+  expect(screen.queryByRole("option")).not.toBeInTheDocument();
+});

@@ -23,9 +23,13 @@ Open the URL Vite prints (normally `http://127.0.0.1:5173`). The API runs on por
 HAUL_HOURS_API_PORT=8010 HAUL_HOURS_WEB_PORT=5180 npm run dev:demo
 ```
 
-**Demo mode displays a Test data banner.** It uses a small directed fixture network with illustrative geometry and timings, while running the actual Django scheduler and PDF generation. It never substitutes fixtures for failed live routing. Search Pittsburgh → Harrisburg → Philadelphia for a short trip; choose San Diego for multiple days, Los Angeles for fuel, cycle usage 70 for a restart, Boston for blocked stops, or Miami for a simulated provider outage. Set optional departure to `2026-10-02T08:00` for repeatable examples. Fixture mode is refused outside debug mode and on Vercel.
+**Demo mode displays a “Demo mode — sample routes” banner.** It uses a small directed fixture network with illustrative geometry and timings, while running the actual Django scheduler and PDF generation. It never substitutes fixtures for failed live routing. Search Pittsburgh → Harrisburg → Philadelphia for a short trip; choose San Diego for multiple days, Los Angeles for fuel, cycle usage 70 for a restart, Boston for blocked stops, or Miami for a simulated provider outage. Set optional departure to `2026-10-02T08:00` for repeatable examples. Fixture mode is refused outside debug mode and on Vercel.
 
-For actual roads, set `ORS_API_KEY` in **backend/.env** and run `npm run dev`. Provider mode defaults to `live`. Never place the provider key in a `VITE_` variable. The development proxy connects the frontend to Django; hosted builds use `frontend/.env.example` → `VITE_API_BASE_URL`.
+For real US addresses and truck routes, create/copy an API key from the [HeiGIT account dashboard](https://account.heigit.org/), set `ORS_API_KEY` in **backend/.env**, and run `npm run dev`. Provider mode defaults to `live`. To use the existing preview ports, run `HAUL_HOURS_API_PORT=8010 HAUL_HOURS_WEB_PORT=5180 npm run dev`. Stop the demo process before starting live mode. Never place the provider key in a `VITE_` variable. The development proxy connects the frontend to Django; hosted builds use `frontend/.env.example` → `VITE_API_BASE_URL`.
+
+The default gateway is `ORS_BASE_URL=https://api.heigit.org`: truck directions/matrices use `/openrouteservice/v2`, and address search uses `/pelias/v1/search`, following the [official API migration](https://ask.openrouteservice.org/t/deprecating-api-openrouteservice-org-in-favour-of-api-heigit-org/7912). Custom API roots preserve the earlier `/v2` and `/geocode` layout. An API key is required to verify live data; a successful demo test does not verify live providers.
+
+The form explains the three required locations and hours already worked. Choose a search suggestion to confirm coordinates, then select **Plan my trip**. Departure/time zone and log metadata remain optional. Skeleton previews cover address searches, trip planning, and map-module loading; cancelling or editing inputs clears pending previews and preserves the last completed trip.
 
 ## Verify
 
