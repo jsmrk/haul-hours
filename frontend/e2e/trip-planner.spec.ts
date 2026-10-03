@@ -4,8 +4,7 @@ import { fileURLToPath, URL } from "node:url";
 import { expect, test, type Page } from "@playwright/test";
 
 async function selectLocation(page: Page, label: string, query: string, choice: string) {
-  await page.getByRole("combobox", { name: label, exact: true }).click();
-  await page.getByRole("combobox", { name: `Search ${label.toLowerCase()}` }).fill(query);
+  await page.getByRole("combobox", { name: label, exact: true }).fill(query);
   await page.getByRole("option", { name: choice, exact: true }).click();
 }
 
@@ -43,6 +42,27 @@ test("short trip agrees across map, itinerary, log and downloaded PDF", async ({
   expect(text).toContain("2026-10-02"); expect(text).toContain("05:00:00"); expect(text).toContain("02:00:00");
   expect(download.suggestedFilename()).toBe("haul-hours-2026-10-02.pdf");
   expect(errors).toEqual([]);
+});
+
+test("an empty form can be corrected by typing directly into each location field", async ({ page }) => {
+  await page.setViewportSize({ width: 1850, height: 900 });
+  await page.goto("/");
+  await page.getByRole("button", { name: "Plan my trip" }).click();
+  await expect(page.getByRole("alert").filter({ hasText: "Please correct the highlighted fields." })).toBeVisible();
+  const current = page.getByRole("combobox", { name: "Current location", exact: true });
+  await current.fill("Pittsburgh");
+  await expect(current).toBeFocused();
+  await expect(page.getByRole("option", { name: "Pittsburgh, PA", exact: true })).toBeVisible();
+  await current.press("ArrowDown");
+  await current.press("Enter");
+  await expect(current).toHaveValue("Pittsburgh, PA");
+  await expect(current).toBeFocused();
+  await selectLocation(page, "Pickup location", "Harrisburg", "Harrisburg, PA");
+  await selectLocation(page, "Drop-off location", "Philadelphia", "Philadelphia, PA");
+  await page.getByLabel("Current cycle used").fill("0");
+  await page.getByRole("button", { name: "Plan my trip" }).click();
+  await expect(page.getByText("Your trip, mapped out.")).toBeVisible();
+  await expect(page.getByText("5h", { exact: true })).toBeVisible();
 });
 
 test("multi-day route includes fuel and rests and every day remains navigable", async ({ page }) => {
@@ -110,7 +130,7 @@ test("provider outage is explicit and preserves entered locations", async ({ pag
   await setupTrip(page, "Miami, FL");
   await page.getByRole("button", { name: "Plan my trip" }).click();
   await expect(page.getByRole("alert")).toContainText("temporarily unavailable");
-  await expect(page.getByRole("combobox", { name: "Drop-off location", exact: true })).toContainText("Miami, FL");
+  await expect(page.getByRole("combobox", { name: "Drop-off location", exact: true })).toHaveValue("Miami, FL");
 });
 
 test("editing a selected location cancels planning and preserves the previous snapshot", async ({ page }) => {
@@ -154,7 +174,10 @@ test("responsive forms, suggestions, results and printable sheets stay usable", 
     await expect(input).toBeFocused();
     await page.keyboard.press("Tab");
     await input.focus();
-    expect(await input.evaluate((node) => node.matches(":focus-visible") && (getComputedStyle(node).outlineStyle !== "none" || getComputedStyle(node).boxShadow !== "none"))).toBe(true);
+    expect(await input.evaluate((node) => {
+      const field = node.closest('[data-slot="input-group"]');
+      return node.matches(":focus-visible") && field !== null && getComputedStyle(field).boxShadow !== "none";
+    })).toBe(true);
   }
   await page.getByRole("button", { name: "Plan my trip" }).click();
   await expect(page.getByText("Your trip, mapped out.")).toBeVisible();

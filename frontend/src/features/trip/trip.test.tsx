@@ -38,7 +38,7 @@ it("debounces location searches, ignores short queries, and supports keyboard se
   expect(fetchSpy).not.toHaveBeenCalled();
   await screen.findByRole("option", { name: /New York, NY/ });
   expect(fetchSpy).toHaveBeenCalledTimes(1);
-  const input = screen.getByRole("combobox", { name: "Search current location" });
+  const input = screen.getByRole("combobox", { name: "Current location" });
   fireEvent.keyDown(input, { key: "ArrowDown" });
   fireEvent.keyDown(input, { key: "Enter" });
   await waitFor(() => expect(change).toHaveBeenCalledWith({ query: location.label, location }));
@@ -87,4 +87,25 @@ it("form submission points to the missing assessment inputs without a network re
   expect(screen.getByText("Select a pickup location from the suggestions.")).toBeVisible();
   expect(screen.getByText("Select a drop-off location from the suggestions.")).toBeVisible();
   expect(fetchSpy).not.toHaveBeenCalled();
+});
+
+it("lets users type directly into an invalid location field and select a suggestion without submitting", async () => {
+  const user = userEvent.setup();
+  vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(JSON.stringify({ locations: [location] })));
+  function Form() { const planner = useTripPlanner(); return <TripForm planner={planner}/>; }
+  render(<Form/>);
+  await user.click(screen.getByRole("button", { name: "Plan my trip" }));
+  const input = screen.getByRole("combobox", { name: "Current location" });
+  await user.type(input, "New York");
+  expect(input).toHaveValue("New York");
+  expect(input).toHaveFocus();
+  expect(input).toHaveAttribute("aria-expanded", "true");
+  await screen.findByRole("option", { name: "New York, NY" });
+  await user.keyboard("{ArrowDown}{Enter}");
+  expect(input).toHaveValue("New York, NY");
+  expect(input).toHaveFocus();
+  expect(input).toHaveAttribute("aria-invalid", "false");
+  expect(input).toHaveAttribute("aria-expanded", "false");
+  expect(screen.queryByRole("option")).not.toBeInTheDocument();
+  expect(screen.queryByText("Select a pickup location from the suggestions.")).not.toBeInTheDocument();
 });
