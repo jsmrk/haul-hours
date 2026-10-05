@@ -30,8 +30,8 @@ class RequestPacer:
 
 
 def request_json(client: httpx.Client, method: str, url: str, budget: ProviderBudget,
-                 timeout: float = 10, pacer: RequestPacer | None = None, **kwargs) -> dict:
-    for attempt in range(2):
+                 timeout: float = 10, pacer: RequestPacer | None = None, attempts: int = 2, **kwargs) -> dict:
+    for attempt in range(attempts):
         if pacer:
             pacer.wait(budget)
         request_timeout = budget.consume(timeout)
@@ -43,6 +43,8 @@ def request_json(client: httpx.Client, method: str, url: str, budget: ProviderBu
                 raise PlanningProblem("PROVIDER_RATE_LIMITED", "The map provider is rate limited." + hint, 429, True)
             if response.status_code in (404, 400):
                 raise PlanningProblem("ROUTE_UNREACHABLE", "The provider cannot route between these truck locations.", 422)
+            if response.status_code in (401, 403):
+                raise PlanningProblem("PROVIDER_CONFIGURATION_ERROR", "The data provider rejected the server credentials. Check the server configuration.", 503)
             if response.status_code >= 500:
                 raise httpx.HTTPStatusError("unavailable", request=response.request, response=response)
             if response.status_code >= 400:
@@ -54,7 +56,7 @@ def request_json(client: httpx.Client, method: str, url: str, budget: ProviderBu
                 raise ValueError("Expected JSON object")
             return data
         except (httpx.TransportError, httpx.HTTPStatusError):
-            if attempt == 0 and budget.check() > .3:
+            if attempt + 1 < attempts and budget.check() > .3:
                 time.sleep(.2)
                 continue
             raise PlanningProblem("PROVIDER_UNAVAILABLE", "The map provider is temporarily unavailable.", 503, True) from None

@@ -2,6 +2,7 @@ import { Coffee, FileText, MapPinned, Route, ShieldCheck, Truck, AlertCircle, Ch
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import { TripPlanSkeleton } from "@/features/trip/TripSkeleton";
 import { TripForm } from "@/features/trip/TripForm";
 import { useTripPlanner } from "@/features/trip/useTripPlanner";
@@ -29,14 +30,14 @@ export default function App() {
         <TripForm planner={planner}/>
         <div className="min-w-0 space-y-6">
           {planner.phase === "loading" && <Alert role="status" aria-label="Building your trip plan" className="no-print border-primary/25 bg-accent/30"><Route className="text-primary"/><AlertTitle>Building your trip plan</AlertTitle><AlertDescription>Finding your route and stops, then preparing your daily logs. Longer trips may take a few minutes. You can cancel planning at any time.</AlertDescription></Alert>}
-          {planner.problem && <Alert role="alert" className="no-print"><AlertCircle/><AlertTitle>{planner.phase === "blocked" ? "This trip needs a different stopping plan" : "We couldn’t complete this plan"}</AlertTitle><AlertDescription>{planner.problem.message}{planner.problem.safe_prefix.length > 0 && <div className="mt-3"><p>{planner.problem.safe_prefix.length} safe activities were computed. No complete arrival time or trip export is available.</p><ol className="mt-2 list-decimal space-y-1 pl-5">{planner.problem.safe_prefix.map((event) => <li key={event.id}>{event.kind.replaceAll("_", " ")} · {event.end_location.label}</li>)}</ol></div>}</AlertDescription></Alert>}
+          {planner.problem && <Alert role="alert" className="no-print"><AlertCircle/><AlertTitle>{planner.phase === "blocked" ? "This trip needs a different stopping plan" : "We couldn’t complete this plan"}</AlertTitle><AlertDescription>{planner.problem.message}{planner.problem.safe_prefix.length > 0 && <div className="mt-3"><p>{planner.problem.safe_prefix.length} safe activities were computed. No complete arrival time or trip export is available.</p><ol className="mt-2 list-decimal space-y-1 pl-5">{planner.problem.safe_prefix.map((event) => <li key={event.id}>{event.kind.replaceAll("_", " ")} · {event.end_location.label}</li>)}</ol></div>}{planner.problem.retryable && <Button type="button" variant="outline" size="sm" className="mt-3" onClick={() => void planner.submit()}>Try again</Button>}</AlertDescription></Alert>}
           {planner.phase === "loading" ? <TripPlanSkeleton/> : planner.result && planner.phase !== "blocked" ? <>
             {planner.previousResult && <Alert role="note" className="no-print"><InfoPrevious/><AlertTitle>Previous trip</AlertTitle><AlertDescription>These results belong to your last submitted trip. Plan again to apply your changes.</AlertDescription></Alert>}
             <TripResults key={planner.result.export_token} result={planner.result} selectedEventId={selection?.token === planner.result.export_token ? selection.event : null} onSelectEvent={(event) => { if (planner.result) setSelection({ token: planner.result.export_token, event }); }}/>
           </> : <EmptyWorkspace locationCount={locationCount}/>}
         </div>
       </div>
-      <footer className="mt-10 flex flex-wrap justify-between gap-3 border-t py-6 text-xs leading-relaxed text-muted-foreground"><p>Projected schedules based on your trip inputs. Keep your actual duty records current.</p><p>Road data © OpenStreetMap contributors · Routing by openrouteservice</p></footer>
+      <footer className="mt-10 flex flex-wrap justify-between gap-3 border-t py-6 text-xs leading-relaxed text-muted-foreground"><p>Projected schedules based on your trip inputs. Keep your actual duty records current.</p><p>Road data © OpenStreetMap contributors · Routing by openrouteservice · Truck parking: USDOT/BTS</p></footer>
     </main>
   </>;
 }

@@ -21,6 +21,7 @@ from planner.logs.pdf import draw_log_pdf
 from planner.logs.tokens import sign_log_bundle, verify_log_bundle
 from planner.routing.contracts import ProviderBudget
 from planner.routing.fixtures import FIXTURE_WARNING, FixtureNetwork
+from planner.routing.live_stops import TRUCK_PARKING_URL, LiveStopProvider
 from planner.routing.ors import ORSProvider
 from planner.routing.overpass import OverpassProvider
 from planner.scheduling.scheduler import schedule_trip
@@ -30,8 +31,12 @@ logger = logging.getLogger("haul_hours.api")
 
 
 @lru_cache(maxsize=4)
-def provider_instances(key, base_url, overpass_url, ors_interval, overpass_interval):
-    return ORSProvider(key, base_url, min_interval_s=ors_interval), OverpassProvider(overpass_url, min_interval_s=overpass_interval)
+def provider_instances(key, base_url, overpass_url, ors_interval, overpass_interval, overpass_fallback_urls=(),
+                       stop_provider="dot", parking_url=None):
+    routing = ORSProvider(key, base_url, min_interval_s=ors_interval)
+    stops = (LiveStopProvider(routing, parking_url or TRUCK_PARKING_URL) if stop_provider == "dot" else OverpassProvider(
+        overpass_url, min_interval_s=overpass_interval, fallback_urls=overpass_fallback_urls))
+    return routing, stops
 
 
 def get_providers():
@@ -43,7 +48,8 @@ def get_providers():
     if settings.PROVIDER_MODE != "live":
         raise PlanningProblem("PROVIDER_CONFIGURATION_ERROR", "Configure a supported routing provider mode.", 503)
     return provider_instances(settings.ORS_API_KEY, settings.ORS_BASE_URL, settings.OVERPASS_URL,
-                              settings.ORS_MIN_INTERVAL_S, settings.OVERPASS_MIN_INTERVAL_S)
+                              settings.ORS_MIN_INTERVAL_S, settings.OVERPASS_MIN_INTERVAL_S, settings.OVERPASS_FALLBACK_URLS,
+                              settings.STOP_PROVIDER, settings.TRUCK_PARKING_URL)
 
 
 def flatten_errors(detail, prefix=""):
@@ -122,6 +128,8 @@ def plan(request):
         "planner_version": PLANNER_VERSION, "export_token": sign_log_bundle(logs)}
     if settings.PROVIDER_MODE == "fixtures":
         payload["warnings"].insert(0, FIXTURE_WARNING)
+    elif settings.STOP_PROVIDER == "dot":
+        payload["warnings"].append("Truck rest locations use the USDOT/BTS inventory compiled in April 2019. Confirm current access, opening hours and parking availability before travel.")
     if len(json.dumps(payload, separators=(",", ":")).encode()) > MAX_BODY_BYTES:
         raise PlanningProblem("RESULT_TOO_LARGE", "The route and logs exceed the 4 MB response size limit.", 413)
     return Response(payload)

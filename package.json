@@ -20,7 +20,8 @@
     "lint": "tsx scripts/backend.ts lint && npm run typecheck",
     "contracts:generate": "tsx scripts/generate-contracts.ts",
     "contracts:check": "tsx scripts/generate-contracts.ts --check",
-    "test:e2e": "npm run test:e2e -w @haul-hours/web --"
+    "test:e2e": "npm run test:e2e -w @haul-hours/web --",
+    "test:live": "tsx scripts/smoke-live.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.4",
