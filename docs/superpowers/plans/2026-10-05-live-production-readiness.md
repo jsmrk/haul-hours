@@ -33,4 +33,13 @@
 - [x] Add production-setting regression tests, HTTPS/security configuration and configurable provider endpoints in `backend/config/settings.py`; update environment examples and deployment instructions.
 - [x] Test and add a retry button for transient errors in `frontend/src/App.tsx`.
 - [x] Add a TypeScript live smoke command covering real short, overnight, fuel and cycle-restart trips; audit timelines and export PDFs using the same server settings.
-- [ ] Run the complete suites, strict checks, production build and deploy checks. Verify the previously failing Harrisonburg trip using the actual key, review changes, merge locally and restart the live preview.
+- [x] Run the complete suites, strict checks, production build and deploy checks. Verify the previously failing Harrisonburg trip using the actual key, review changes, merge locally and restart the live preview.
+
+## Completion Evidence (2026-10-05)
+
+- 126 backend tests, 26 frontend tests and 12 browser tests pass; lint, strict TypeScript, API checks and contract consistency pass.
+- Local and Vercel-mode HTTPS frontend builds pass. Django's production deploy check reports no errors; HSTS subdomain/preload warnings reflect the deliberate policy documented in `docs/deployment.md`.
+- All four real-provider smoke scenarios pass, including single/all-day PDFs. The live Harrisonburg browser flow completes with two daily logs and the disclosed inventory limitation.
+- Independent read-only review approved merging after fixing HTTP 410 handling for deleted fuel records. Regression tests cover both removed and nonexistent records without hiding the next valid station.
+- Changes merged locally; live API runs on port 8010 and frontend on port 5180. A fresh short-trip and PDF smoke check passes against the merged app.
+- Hosted bundle/cold-start/CORS/smoke checks, account-wide quotas and reviewer/Loom delivery require external deployment or account information and remain explicitly recorded in `docs/deployment.md`. Current parking availability requires confirmation at the facility; historical inventory is disclosed, not treated as current occupancy.
