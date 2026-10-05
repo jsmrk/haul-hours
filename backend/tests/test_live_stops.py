@@ -97,3 +97,28 @@ def test_malformed_poi_records_are_not_cached_and_can_recover():
         provider.find_candidates(search, budget())
     assert provider.find_candidates(search, budget()) == ()
     assert len(attempts) == 2
+
+
+@pytest.mark.parametrize("status", [404, 410])
+def test_removed_osm_fuel_record_does_not_hide_other_valid_stations(status):
+    records = []
+
+    def handler(request):
+        if request.url.host == "api.heigit.org":
+            return httpx.Response(200, json={"features": [
+                {"geometry": {"coordinates": [-79, 40]}, "properties": {"osm_id": identifier, "osm_type": 2}}
+                for identifier in (1, 2)
+            ]})
+        identifier = int(request.url.path.rsplit("/", 1)[1].removesuffix(".json"))
+        records.append(identifier)
+        if identifier == 1:
+            return httpx.Response(status)
+        return httpx.Response(200, json={"elements": [{"id": 2, "type": "way", "tags": {
+            "amenity": "fuel", "name": "Existing fuel station"}}]})
+
+    client = httpx.Client(transport=httpx.MockTransport(handler))
+    provider = LiveStopProvider(ORSProvider("key", client=client), client=client)
+    provider.pacer = type(provider.pacer)(0)
+    places = provider.find_candidates(StopSearch(((-79, 40),), 2000, True, False), budget())
+    assert [place.id for place in places] == ["osm:way:2"]
+    assert records == [1, 2]

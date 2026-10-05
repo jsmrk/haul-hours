@@ -95,7 +95,8 @@ class LiveStopProvider:
                     if record is None:
                         try:
                             data = request_json(self.client, "GET", f"https://api.openstreetmap.org/api/0.6/{osm_type}/{identifier}.json",
-                                                budget, pacer=self.pacer, headers={"User-Agent": USER_AGENT})
+                                                budget, pacer=self.pacer, unreachable_statuses=(404, 410),
+                                                headers={"User-Agent": USER_AGENT})
                         except PlanningProblem as problem:
                             if problem.code == "ROUTE_UNREACHABLE":  # Deleted/outdated POI reference.
                                 continue

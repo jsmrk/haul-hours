@@ -57,7 +57,7 @@ Local live acceptance passed on 2026-10-05 using the real configured ORS key and
 | Fuel | Los Angeles → Phoenix → Dallas | 4 daily logs, 1 fuel stop, 4 daily rests |
 | Cycle exhausted | Short route with 70 hours already worked | 2 daily logs, 34-hour cycle restart |
 
-All four passed timeline/daily-total checks, the fuel-distance bound, and single-day/all-day PDF checks. These results describe the tested routes and provider responses, not guaranteed coverage or future provider availability. Automated verification passed 124 backend tests and 26 frontend tests, strict TypeScript, lint, contract consistency and the production build. Django's production deploy check had no errors; its two HSTS warnings reflect the deliberate subdomain/preload choices above.
+All four passed timeline/daily-total checks, the fuel-distance bound, and single-day/all-day PDF checks. These results describe the tested routes and provider responses, not guaranteed coverage or future provider availability. Automated verification passed 126 backend tests, 26 frontend tests and 12 browser tests, strict TypeScript, lint, contract consistency and the production build (including a Vercel-mode build with an HTTPS API origin). Django's production deploy check had no errors; its two HSTS warnings reflect the deliberate subdomain/preload choices above.
 
 1. Run local CI commands and push the reviewed implementation using the repository owner's account.
 2. Deploy the API and verify `/api/v1/health`; it must return provider-mode header `live`.

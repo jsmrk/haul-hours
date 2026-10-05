@@ -30,7 +30,8 @@ class RequestPacer:
 
 
 def request_json(client: httpx.Client, method: str, url: str, budget: ProviderBudget,
-                 timeout: float = 10, pacer: RequestPacer | None = None, attempts: int = 2, **kwargs) -> dict:
+                 timeout: float = 10, pacer: RequestPacer | None = None, attempts: int = 2,
+                 unreachable_statuses: tuple[int, ...] = (400, 404), **kwargs) -> dict:
     for attempt in range(attempts):
         if pacer:
             pacer.wait(budget)
@@ -41,7 +42,7 @@ def request_json(client: httpx.Client, method: str, url: str, budget: ProviderBu
                 retry = response.headers.get("Retry-After", "")
                 hint = f" Retry after {retry} seconds." if retry.isdigit() and len(retry) <= 5 else ""
                 raise PlanningProblem("PROVIDER_RATE_LIMITED", "The map provider is rate limited." + hint, 429, True)
-            if response.status_code in (404, 400):
+            if response.status_code in unreachable_statuses:
                 raise PlanningProblem("ROUTE_UNREACHABLE", "The provider cannot route between these truck locations.", 422)
             if response.status_code in (401, 403):
                 raise PlanningProblem("PROVIDER_CONFIGURATION_ERROR", "The data provider rejected the server credentials. Check the server configuration.", 503)
